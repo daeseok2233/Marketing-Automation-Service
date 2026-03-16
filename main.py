@@ -9,14 +9,14 @@ from dotenv import load_dotenv
 load_dotenv()  # .env 파일 로드
 
 # ── 로거 설정
-os.makedirs("logs", exist_ok=True)
+os.makedirs("data/logs", exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)s  %(message)s",
     handlers=[
         logging.StreamHandler(),
         logging.FileHandler(
-            f"logs/{datetime.now().strftime('%Y%m%d')}.log",
+            f"data/logs/{datetime.now().strftime('%Y%m%d')}.log",
             encoding="utf-8"
         ),
     ],
@@ -26,11 +26,10 @@ log = logging.getLogger(__name__)
 # ── Import
 from topic_finder    import TopicFinder
 from templates       import build_angle_prompt
-from generator       import BlogGenerator, quality_check
+from blog_generator.generator import BlogGenerator, quality_check
 from notion_uploader import NotionUploader
 from legal_rag       import LegalRAG
-from screenshot_tool import capture_markview_search, screenshot_to_notion_block
-from exporter        import export_docx
+from screenshot_tool import capture_markview_search
 
 from collectors.naver_datalab  import NaverDataLabCollector
 from collectors.naver_news     import NaverNewsCollector
