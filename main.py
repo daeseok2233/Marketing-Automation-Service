@@ -30,6 +30,7 @@ from generator       import BlogGenerator, quality_check
 from notion_uploader import NotionUploader
 from legal_rag       import LegalRAG
 from screenshot_tool import capture_markview_search, screenshot_to_notion_block
+from exporter        import export_docx
 
 from collectors.naver_datalab  import NaverDataLabCollector
 from collectors.naver_news     import NaverNewsCollector
@@ -179,6 +180,10 @@ def run():
             try:
                 uploader.upload(p)
                 uploaded += 1
+                # Word 파일도 동시 저장
+                docx_path = export_docx(p)
+                if docx_path:
+                    log.info(f"  [docx] {docx_path.name}")
             except Exception as e:
                 log.error(f"  [ERROR] 업로드 실패: {e}")
     except EnvironmentError as e:

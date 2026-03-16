@@ -3,6 +3,7 @@ import os, json, re, time
 import requests as _req
 from google import genai
 from google.genai import types
+from schema import BlogPost
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 
@@ -86,29 +87,51 @@ class BlogGenerator:
     def _parse(self, raw: str) -> dict | None:
         cleaned = re.sub(r"```(?:json)?", "", raw).replace("```", "").strip()
         m = re.search(r'\{[\s\S]*\}', cleaned)
-        if m:
-            try:
-                return json.loads(m.group())
-            except json.JSONDecodeError as e:
-                print(f"  JSON 파싱 실패: {e}\n  원본: {raw[:200]}")
-        return None
+        if not m:
+            return None
+        try:
+            data = json.loads(m.group())
+        except json.JSONDecodeError as e:
+            print(f"  JSON 파싱 실패: {e}\n  원본: {raw[:200]}")
+            return None
+
+        # ── Pydantic 검증 + 정규화 (해시태그 # 자동 보정 등)
+        try:
+            post = BlogPost(**data)
+            return post.to_dict()
+        except Exception as e:
+            print(f"  Pydantic 검증 실패: {e}")
+            # 구형 flat body 포맷(Ollama 등)은 그대로 통과
+            if isinstance(data.get("body"), str) and data.get("title"):
+                return data
+            return None
 
 
 def quality_check(post: dict) -> tuple[bool, str]:
-    """(통과여부, 실패이유) 반환"""
-    body  = post.get("body", "")
+    """(통과여부, 실패이유) 반환 — 구조형(intro+body[]+conclusion) 및 flat body 모두 지원"""
     title = post.get("title", "")
     tags  = post.get("hashtags", [])
     meta  = post.get("meta_description", "")
     svc   = {"markview":"마크뷰","markpick":"마크픽",
               "markpass":"마크패스","markcloud":"마크클라우드"}.get(post.get("service_key",""), "마크")
 
+    # 전체 본문 텍스트 구성 (구조형 / flat 모두 대응)
+    if isinstance(post.get("body"), list):
+        parts = [post.get("intro", "")]
+        for s in post.get("body", []):
+            if isinstance(s, dict):
+                parts.extend([s.get("heading", ""), s.get("content", "")])
+        parts.extend([post.get("conclusion", ""), post.get("cta", "")])
+        full_text = "\n".join(filter(None, parts))
+    else:
+        full_text = post.get("body", "")
+
     checks = [
-        (len(body)  >= 1500, f"본문 부족 ({len(body)}자)"),
-        (len(title) >= 15,   f"제목 짧음 ({len(title)}자)"),
-        (body.count(svc) >= 2, f"서비스 언급 부족 ({svc} {body.count(svc)}회)"),
-        (len(tags)  >= 4,    f"해시태그 부족 ({len(tags)}개)"),
-        (len(meta)  >= 20,   "메타설명 없음"),
+        (len(full_text) >= 1500, f"본문 부족 ({len(full_text)}자)"),
+        (len(title)     >= 15,   f"제목 짧음 ({len(title)}자)"),
+        (full_text.count(svc) >= 2, f"서비스 언급 부족 ({svc} {full_text.count(svc)}회)"),
+        (len(tags)      >= 4,    f"해시태그 부족 ({len(tags)}개)"),
+        (len(meta)      >= 20,   "메타설명 없음"),
     ]
     for ok, reason in checks:
         if not ok:

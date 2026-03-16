@@ -183,14 +183,43 @@ class NotionUploader:
         return blocks
 
     def _build(self, post: dict, date_str: str) -> dict:
-        body = post.get("body", "")
-        # 노션 paragraph 블록은 2000자 제한 → 분할
         blocks = []
-        for i in range(0, len(body), 2000):
-            blocks.append({
-                "object": "block", "type": "paragraph",
-                "paragraph": {"rich_text": [{"type": "text", "text": {"content": body[i:i+2000]}}]},
-            })
+
+        # ── 본문 렌더링 (구조형: intro + body[sections] + conclusion + cta)
+        if isinstance(post.get("body"), list):
+            # 도입부
+            intro = post.get("intro", "")
+            for i in range(0, len(intro), 2000):
+                blocks.append(_para(intro[i:i+2000]))
+
+            # 본론 섹션 (H2 소제목 + 내용)
+            for section in post.get("body", []):
+                if isinstance(section, dict):
+                    heading = section.get("heading", "")
+                    content = section.get("content", "")
+                    if heading:
+                        blocks.append(_h2(heading))
+                    for i in range(0, len(content), 2000):
+                        blocks.append(_para(content[i:i+2000]))
+
+            # 마무리
+            conclusion = post.get("conclusion", "")
+            for i in range(0, len(conclusion), 2000):
+                blocks.append(_para(conclusion[i:i+2000]))
+
+            # CTA
+            cta = post.get("cta", "")
+            if cta:
+                blocks.append(_callout(cta, "💡"))
+
+        else:
+            # 구형 flat body 폴백 (하위 호환)
+            body = post.get("body", "")
+            for i in range(0, len(body), 2000):
+                blocks.append({
+                    "object": "block", "type": "paragraph",
+                    "paragraph": {"rich_text": [{"type": "text", "text": {"content": body[i:i+2000]}}]},
+                })
 
         # ── 스크린샷 블록 (image-search-demo 템플릿)
         screenshot = post.get("screenshot", {})
