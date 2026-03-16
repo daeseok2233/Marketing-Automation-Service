@@ -1,22 +1,56 @@
 {
   "key": "howto",
-  "name": "방법안내형",
-  "when_to_use": "구체적 절차·방법·비용·단계 안내가 핵심인 주제. '어떻게 하나요?', '비용이 얼마인가요?', '몇 단계인가요?' 형태의 검색어에 최적.",
-  "not_for": [],
+  "name": "방법·절차 안내형",
+  "seo_focus": ["SEO", "AEO"],
+  "optimization_notes": {
+    "SEO": "'~하는 방법', '~절차', '~순서', '~비용' 등 navigational/transactional 검색 의도 키워드 커버.",
+    "AEO": "각 Step H2를 '~은 어떻게 하나요?' 형식으로 작성. 답변 첫 문장에 키워드 포함된 직접 답변."
+  },
+  "when_to_use": [
+    "구체적 절차·방법·비용·단계 안내가 핵심인 주제",
+    "'어떻게 하나요?', '비용이 얼마인가요?', '몇 단계인가요?' 형태의 검색어"
+  ],
+  "not_for": [
+    "단순 정보·개념 설명 (info형 사용)",
+    "분쟁·사례 중심 (case형 사용)"
+  ],
+  "target_blog_concepts": ["창업자의 상표 가이드", "AI 상표 자동화"],
+  "structure": [
+    "[방법·절차 안내형 구조]",
+    "**도입** (100~150자): 지금 해야 하는 이유 + 소요 시간·비용 미리 언급.",
+    "  → [📷 커버 이미지 자동 삽입 위치: 도입부 직후 — 단계별 프로세스 플로우차트]",
+    "**H2: {kw}, 왜 지금 해야 하나요?** → {bigkinds} / {kipris} 통계",
+    "**H2: 시작 전 반드시 확인할 것은?** → 체크리스트 3~4가지 → {svc} 사전검색 연결",
+    "**H2: Step 1 — 유사 상표 검색은 어떻게 하나요?** → 구체적 방법 → {svc} 기능 소개",
+    "**H2: Step 2 — 출원 서류는 어떻게 준비하나요?** → 필요 서류 목록 + 팁",
+    "  → [📷 중간 이미지 자동 삽입 위치: Step 2 직후 — 서류 준비 장면 이미지]",
+    "**H2: Step 3 — 심사 기간은 얼마나 걸리나요?** → 평균 기간 수치 명시",
+    "**H2: {kw} 비용은 얼마인가요?** → 관납료+서비스비 구체 수치 / 셀프 vs 대행 비교표",
+    "**마무리** (80~120자): 전체 단계 요약 1문장 + {svc} CTA"
+  ],
+  "image_hints": [
+    {
+      "position": "cover",
+      "prompt": "Step-by-step process flow for trademark registration. Five connected steps with arrows, document icons, magnifying glass, approval checkmark. Flat design, deep blue and white, no text.",
+      "alt_text": "{main_keyword} 단계별 가이드 이미지"
+    },
+    {
+      "position": "mid",
+      "prompt": "Person reviewing trademark application documents on a desk. Computer screen showing trademark database search results. Professional office setting. Flat design, deep blue and white, no text.",
+      "alt_text": "상표 출원 서류 준비 이미지"
+    }
+  ],
+  "writing_rules": [
+    "각 Step H2 아래 첫 문장은 해당 단계의 핵심 행동을 동사로 시작",
+    "비용·기간은 반드시 구체적 수치로",
+    "Step은 5~7개 유지",
+    "서비스 홍보는 Step 1~2에서 1회, 마무리에서 1회 최대 2회"
+  ],
+  "meta_description_format": "{kw} 처음이라면? {n}단계 가이드로 빠짐없이 완료하세요. 비용·기간·서류 한 번에 정리.",
   "example_titles": [
     "상표 출원 처음인데, 5단계로 끝내는 방법",
     "상표 등록 비용 총정리 — 셀프 vs 대행 완벽 비교",
     "유사 상표 검색, 이렇게 하면 거절 막을 수 있습니다"
   ],
-  "structure": [
-    "[How-to형 구조]",
-    "**도입**: 지금 해야 하는 이유 + 소요 시간·비용 미리 언급",
-    "**H2: {kw}, 왜 지금 해야 하나요?** → {bigkinds} / {kipris}",
-    "**H2: 시작 전 반드시 확인할 것은?** → 체크리스트 3~4가지 → {svc} 사전검색 연결",
-    "**H2: Step 1 — 유사 상표 검색은 어떻게?** → 구체적 방법 → {svc} 기능 소개",
-    "**H2: Step 2 — 출원 서류 준비** → 필요 서류 목록 + 팁",
-    "**H2: Step 3 — 심사 기간은 얼마나?** → 평균 기간 수치 명시",
-    "**H2: {kw} 비용은 얼마인가요?** → 관납료+서비스비 안내 / 셀프 vs 대행 비교",
-    "**마무리**: 전체 요약 + {svc} CTA"
-  ]
+  "length_guide": "2000~3000자"
 }

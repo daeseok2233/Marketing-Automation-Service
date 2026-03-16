@@ -1,22 +1,64 @@
 {
   "key": "industry-trend",
-  "name": "업종 트렌드형",
-  "when_to_use": "특정 업종·시장·트렌드가 뜨고 있는 뉴스. 그 업종의 상표 출원 동향을 분석하는 형식. '요즘 이 업종 상표 출원 급증' 형태의 SEO 유입에 최적.",
-  "not_for": [],
+  "name": "업종 트렌드 분석형",
+  "seo_focus": ["GEO", "SEO"],
+  "optimization_notes": {
+    "GEO": "AI 검색 엔진(ChatGPT·Gemini·Perplexity)은 '업종 + 상표 트렌드' 쿼리에 데이터 기반 답변을 선호. 통계 수치에 출처와 연도를 반드시 명시해 AI 인용 신뢰도↑. E-E-A-T 권위 신호 강화.",
+    "SEO": "'~업종 상표 출원', '~업계 상표 트렌드', '~시장 상표 동향' 검색어 커버. 업종별 특화 콘텐츠로 롱테일 검색 유입 확보."
+  },
+  "when_to_use": [
+    "특정 업종·시장·트렌드가 화제인 뉴스",
+    "해당 업종의 상표 출원 동향을 분석하는 형식",
+    "'요즘 이 업종 상표 출원 급증' 형태의 SEO 유입에 최적",
+    "GEO: AI 검색 엔진에 업계 데이터로 인용되기를 원할 때"
+  ],
+  "not_for": [
+    "데이터 없는 감성적 스토리 (case형 사용)",
+    "절차·방법 안내 (howto형 사용)"
+  ],
+  "target_blog_concepts": ["상표 뉴스&트렌드", "AI 상표 자동화"],
+  "image_hints": [
+    {
+      "position": "cover",
+      "prompt": "Rising bar chart showing trademark registration growth over time. Industry sector icons surrounding the chart. Data analytics concept with upward trend arrows. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image. Suitable for a Korean IP trademark business blog.",
+      "alt_text": "{main_keyword} 업종 트렌드 차트 커버 이미지"
+    },
+    {
+      "position": "mid",
+      "prompt": "Market analysis concept. Magnifying glass over industry sector icons. Pie chart and trend lines. Business intelligence concept with data points. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image.",
+      "alt_text": "업종별 상표 출원 분석 이미지"
+    }
+  ],
+  "structure": [
+    "[업종 트렌드 분석형 구조]",
+    "**도입** (100~150자): 뉴스 업종·시장 트렌드 소개 → '상표 출원 데이터로도 이 트렌드가 보입니다' 연결. 핵심 통계 1개로 시작 권장 (GEO 최적화).",
+    "[📷 커버 이미지 자동 삽입 위치: 도입부 직후 — 업종 트렌드 차트/성장 이미지]",
+    "**[핵심 데이터 요약 박스]** → 주요 통계 3~4개 불릿 (출처: {kipris}, 빅카인즈 명시). AI 검색 인용 최적화.",
+    "**H2: {kw} 업종, 상표 출원이 얼마나 늘었나요?** → {kipris} 통계 인용 (연도·증가율 명시) → {bigkinds} 뉴스 언급량 추이",
+    "**H2: 왜 지금 이 업종에서 상표 출원이 급증할까요?** → 시장 배경 분석 (200~300자) → 경쟁 심화·규제 변화·소비자 트렌드 등 원인 제시",
+    "[📷 중간 이미지 자동 삽입 위치: 2번째 H2 후 — 업종 분석/돋보기 이미지]",
+    "**H2: 이 업종에서 상표 출원 시 주의할 점은?** → 업종별 특이사항·거절 패턴 2~3가지 (출처 명시)",
+    "**H2: 경쟁사보다 먼저 상표를 선점하려면 어떻게 해야 하나요?** → 선출원주의 원칙 + {svc}({usp}) 자연 소개",
+    "**마무리** (80~120자): 트렌드 요약 + 지금 당장 확인해야 하는 이유 + {svc} CTA"
+  ],
+  "data_sources": {
+    "primary": ["특허청 KIPRIS (kipris.or.kr)", "빅카인즈 (bigkinds.or.kr)", "특허청 연간 통계 보고서"],
+    "citation_format": "(출처: {기관명}, {연도})"
+  },
+  "writing_rules": [
+    "모든 통계에 출처와 연도 필수 명시 — GEO 핵심",
+    "추정치와 확정치 구분 ('약', '추정', '알려진 바로는' 사용)",
+    "업종 전문 용어는 첫 등장 시 괄호로 설명",
+    "데이터 없는 주장 금지 — 근거 없는 수치 생성 절대 금지",
+    "서비스 홍보는 마지막 H2에서 1회, 경쟁 우위 맥락에서 자연 연결"
+  ],
+  "meta_description_format": "{year}년 {kw} 업종 상표 출원 트렌드를 데이터로 분석합니다. {key_stat} 등 특허청 데이터 기반 업계 인사이트.",
   "example_titles": [
     "식음료 신제품 봇물, 올해 상표 출원 얼마나 늘었을까?",
     "AI 스타트업 폭발 성장 — 상표 출원 트렌드로 보는 시장 신호",
-    "K-콘텐츠 인기 속 캐릭터 상표 출원 3배 증가한 이유"
+    "K-콘텐츠 인기 속 캐릭터 상표 출원 3배 증가한 이유",
+    "2026년 뷰티·코스메틱 업종 상표 출원 트렌드 분석 [특허청 데이터]",
+    "이커머스 급성장에 상표 분쟁도 급증, 셀러가 알아야 할 것들"
   ],
-  "structure": [
-    "[업종 트렌드형 구조]",
-    "**도입**: 뉴스 업종·시장 트렌드 소개 → '상표 출원 데이터로도 이 트렌드가 보입니다'",
-    "**H2: {kw} 업종, 상표 출원이 얼마나 늘었나요?**",
-    "  → {kipris} 통계 인용",
-    "  → {bigkinds} 뉴스 언급량 추이",
-    "**H2: 왜 지금 이 업종에서 상표 출원이 급증할까요?** → 시장 배경 분석",
-    "**H2: 이 업종에서 상표 출원 시 주의할 점은?** → 업종별 특이사항·거절 패턴",
-    "**H2: 경쟁사보다 먼저 상표를 선점하려면?** → 선출원주의 원칙 + {svc}({usp})",
-    "**마무리**: 트렌드 요약 + 지금 당장 확인해야 하는 이유 + {svc} CTA"
-  ]
+  "length_guide": "2000~3500자"
 }

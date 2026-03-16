@@ -1,20 +1,56 @@
 {
   "key": "info",
-  "name": "정보형",
-  "when_to_use": "신제품 출시·브랜드 론칭·트렌드 현황 설명·일반 정보 전달이 목적인 주제. 갈등이 없고 긍정적·중립적 뉴스에 기본으로 사용.",
-  "not_for": ["실제 분쟁이 없는 주제에 case 사용 금지"],
+  "name": "정보·개념 설명형",
+  "seo_focus": ["AEO", "SEO"],
+  "optimization_notes": {
+    "AEO": "H2를 질문 형식으로 작성. 각 H2 아래 첫 문장은 반드시 2~3문장 직접 답변으로 시작 → Google Featured Snippet·AI 검색 인용 최적화.",
+    "SEO": "'~이란', '~란 무엇인가', '~뜻', '~개념' 등 informational 검색 의도 키워드를 H2·첫 단락에 자연 배치."
+  },
+  "when_to_use": [
+    "신제품 출시·브랜드 론칭·트렌드 현황 설명·일반 정보 전달이 목적인 주제",
+    "갈등이 없고 긍정적·중립적 뉴스에 기본으로 사용",
+    "'상표란', '상표권이란', '상표 등록이란' 등 개념 검색어 타겟"
+  ],
+  "not_for": [
+    "실제 분쟁이 있는 주제 (case형 사용)",
+    "단계별 절차 안내 (howto형 사용)"
+  ],
+  "target_blog_concepts": ["상표 사전"],
+  "structure": [
+    "[정보·개념 설명형 구조]",
+    "**도입** (100~150자): '혹시 이런 경험 있으신가요?' 공감 → {kw} 포함 → 글 예고. 첫 문장에 메인 키워드 포함.",
+    "  → [📷 커버 이미지 자동 삽입 위치: 도입부 직후 — {kw} 개념 설명 일러스트]",
+    "**H2: {kw}이란 무엇인가요?** → 정의 2~3문장(AEO 핵심: 첫 문장이 직접 답변) → 비유·예시 1개.",
+    "**H2: {kw}이 왜 중요한가요?** → 통계 인용: {bigkinds} / {kipris} → 미등록 시 리스크 1~2개",
+    "**H2: 꼭 알아야 할 핵심 3가지** → 번호 리스트(1. 2. 3.), 각 2~3문장.",
+    "  → [📷 중간 이미지 자동 삽입 위치: 핵심 3가지 섹션 직후 — {kw} 중요성 인포그래픽]",
+    "**H2: 어떻게 시작해야 할까요?** → {svc}를 해결책으로 자연 소개({usp}).",
+    "**마무리** (80~120자): 핵심 요약 1문장 + 부드러운 행동 유도"
+  ],
+  "image_hints": [
+    {
+      "position": "cover",
+      "prompt": "Abstract concept of trademark registration and brand protection. Shield with a brand symbol, official document icons, government building silhouette. Flat design, deep blue and white, no text.",
+      "alt_text": "{main_keyword} 개념 설명 커버 이미지"
+    },
+    {
+      "position": "mid",
+      "prompt": "Business person protecting their brand logo with a legal shield. Infographic style showing trademark importance. Flat design, deep blue and white, no text.",
+      "alt_text": "{main_keyword} 중요성 이미지"
+    }
+  ],
+  "writing_rules": [
+    "H2 첫 문장은 반드시 질문에 대한 직접 답변 (AI 검색 인용 최적화)",
+    "전문 용어 첫 등장 시 괄호 안에 쉬운 설명 추가",
+    "숫자·통계는 출처와 함께 명시",
+    "서비스 홍보는 마지막 H2에서 1회, 문제 해결 맥락에서 자연스럽게",
+    "문단당 3~4문장 이하, 모바일 가독성 우선"
+  ],
+  "meta_description_format": "{kw}이란 무엇인지 전문가가 쉽게 설명합니다. {sub_keyword} 포함 핵심 정보 총정리.",
   "example_titles": [
     "쿨피스 바나나맛 출시로 본 식음료 브랜드 상표 전략",
     "갤럭시 S26 출시, 삼성은 상표를 어떻게 보호할까?",
-    "올해 상표 출원 역대 최고, 내 브랜드도 등록해야 할까?"
+    "상표권이란? 창업자가 반드시 알아야 할 핵심 개념 총정리"
   ],
-  "structure": [
-    "[정보형 구조]",
-    "**도입**: '혹시 이런 경험 있으신가요?' 공감 → 메인 키워드 포함 → 글 예고",
-    "**H2: {kw}이란 무엇인가요?** → 정의 2~3문장(AEO핵심) → 비유·예시",
-    "**H2: {kw}이 왜 중요한가요?** → 통계 인용: {bigkinds} / {kipris}",
-    "**H2: 꼭 알아야 할 핵심 3가지** → 번호 리스트, 각 2~3문장",
-    "**H2: 어떻게 시작해야 할까요?** → {svc}를 해결책으로 자연 소개({usp})",
-    "**마무리**: 요약 + 부드러운 행동 유도"
-  ]
+  "length_guide": "1500~2500자"
 }

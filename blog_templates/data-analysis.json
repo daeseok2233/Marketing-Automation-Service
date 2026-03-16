@@ -1,0 +1,117 @@
+{
+  "key": "data-analysis",
+  "name": "데이터·통계 분석형",
+  "seo_focus": ["GEO", "SEO"],
+  "optimization_notes": {
+    "GEO": "ChatGPT, Gemini, Perplexity 등 AI 검색 엔진은 숫자·출처·연도가 명확한 콘텐츠를 우선 인용. 각 통계에 '(특허청, 2025)', '(KIPRIS 데이터)' 형식으로 출처 필수 명시.",
+    "SEO": "'~통계', '~현황', '~트렌드', '~데이터' 키워드 커버. E-E-A-T(경험·전문성·권위·신뢰) 신호 강화로 도메인 신뢰도 상승."
+  },
+  "when_to_use": [
+    "트렌드·시장 현황 분석 (상표 출원 증가 추세, 업종별 상표 분쟁 현황 등)",
+    "빅카인즈·KIPRIS·특허청 공식 데이터 기반 콘텐츠",
+    "AI 검색 엔진에 통계 출처로 인용되기 위한 권위 있는 콘텐츠",
+    "업계 리포트·연간 트렌드 분석"
+  ],
+  "not_for": [
+    "데이터가 없는 일반 정보 글",
+    "단기 이슈성 뉴스재킹"
+  ],
+  "target_blog_concepts": ["상표 뉴스&트렌드", "브랜드 보호 리포트", "AI 상표 자동화"],
+  "image_hints": [
+    {
+      "position": "cover",
+      "prompt": "Data visualization dashboard. Multiple charts together: bar graph, line graph, pie chart. Statistics and analytics concept. Database cylinder icons. Modern data science visual. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image. Suitable for a Korean IP trademark business blog.",
+      "alt_text": "{main_keyword} 데이터 분석 커버 이미지"
+    },
+    {
+      "position": "mid",
+      "prompt": "Statistical dashboard with magnifying glass examining data. Analyst reviewing graphs on screen. KPI metrics, bar charts and line graphs displayed. Business intelligence concept. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image.",
+      "alt_text": "상표 통계 분석 대시보드 이미지"
+    }
+  ],
+  "structure": {
+    "title_format": "{year}년 {main_keyword} 통계로 보는 핵심 트렌드 {n}가지",
+    "title_alt": "데이터로 증명하는 {main_keyword} 현황: {key_stat} [{출처}]",
+    "meta_description": "{year}년 {main_keyword} 최신 통계와 트렌드를 데이터로 분석합니다. {key_stat} 등 핵심 수치로 보는 {industry} 현황.",
+    "intro": {
+      "length": "150~200자",
+      "must_include": ["핵심 통계 수치 1개로 시작 (Hook)", "데이터 출처 명시", "이 글에서 다루는 분석 범위"],
+      "pattern": "{year}년 국내 {main_keyword} 건수는 {stat}건으로 (출처: {source}), {trend}. 이 글에서는 최신 데이터를 바탕으로 {n}가지 핵심 트렌드를 분석합니다.",
+      "image_placement": "[📷 커버 이미지 자동 삽입 위치: 도입부 직후 — 데이터 차트/통계 대시보드 이미지]"
+    },
+    "key_findings_box": {
+      "format": "📊 핵심 데이터 요약 (인트로 직후)",
+      "content": "주요 통계 3~5개를 불릿으로 나열 — AI 검색 인용 최적화",
+      "example": "• 2025년 상표 출원 건수: XXX건 (특허청)\n• 전년 대비 증가율: +XX%\n• 외국인 출원 비율: XX%\n• 거절률 평균: XX%"
+    },
+    "analysis_sections": {
+      "count": "3~5개 섹션",
+      "h2_format": "{분석 관점}: {핵심 키워드} 데이터 분석",
+      "per_section": {
+        "stat_headline": "대표 수치 1개를 굵은 텍스트로 강조",
+        "chart_description": "데이터 시각화 설명 (실제 차트 삽입 또는 텍스트 대체)",
+        "insight": "수치가 의미하는 바 분석 (200~300자)",
+        "implication": "독자(창업자/브랜드 담당자)에게 이 데이터가 왜 중요한지",
+        "source_citation": "출처: {기관명}, {연도} (필수)"
+      },
+      "mid_image_placement": "[📷 중간 이미지 자동 삽입 위치: 2번째 분석 섹션 후 — 통계 대시보드/분석 이미지]",
+      "section_types": [
+        "연도별 추이 분석: {keyword} 출원/등록/분쟁 건수 변화",
+        "업종별 분석: 어떤 업종에서 가장 많이 발생하나",
+        "지역별·국가별 분석: 내국인 vs 외국인, 해외 출원 현황",
+        "거절·분쟁 현황: 주요 거절 이유, 심판 승률",
+        "AI·기술 트렌드: 디지털 상표, 색채 상표 등 신규 유형"
+      ]
+    },
+    "comparison_table": {
+      "optional": true,
+      "format": "연도 비교 표 또는 업종별 비교 표",
+      "columns": ["구분", "2023년", "2024년", "2025년", "증감률"]
+    },
+    "expert_comment": {
+      "optional": true,
+      "format": "💬 전문가 코멘트 또는 마크클라우드 분석",
+      "content": "데이터 해석에 대한 전문적 시각 1~2문장"
+    },
+    "service_cta": {
+      "position": "마지막 섹션 직전",
+      "tone": "데이터 기반 인사이트에서 서비스 필요성으로 자연스러운 연결",
+      "format": "이러한 트렌드를 고려할 때, {서비스명}의 {기능}이 특히 유용합니다."
+    },
+    "outro": {
+      "length": "100~150자",
+      "must_include": ["핵심 인사이트 1문장 요약", "데이터 기반 행동 권고"],
+      "pattern": "{year}년 데이터가 보여주는 핵심 메시지는 {insight}입니다. 브랜드 보호를 위한 선제적 대응이 어느 때보다 중요한 시점입니다."
+    }
+  },
+  "data_sources": {
+    "primary": [
+      "특허청 KIPRIS (kipris.or.kr) — 상표 출원·등록 통계",
+      "특허청 연간 통계 보고서",
+      "빅카인즈 (bigkinds.or.kr) — 뉴스 언급 빈도·트렌드",
+      "법제처 국가법령정보센터 — 법률 개정 현황"
+    ],
+    "secondary": [
+      "네이버 데이터랩 — 검색 트렌드",
+      "구글 트렌드 — 글로벌 관심도",
+      "마크클라우드 내부 데이터 (사용 시 명시)"
+    ],
+    "citation_format": "(출처: {기관명}, {연도})"
+  },
+  "writing_rules": [
+    "모든 통계에 출처와 연도 필수 명시",
+    "추정치와 확정치 구분 ('약', '추정' 표현 사용)",
+    "AI 검색 인용을 위해 수치를 문장 첫 부분에 배치",
+    "데이터 없는 주장 금지 — 근거 없는 수치 생성 절대 금지",
+    "독자가 데이터를 해석할 수 있도록 맥락 제공",
+    "전문 용어는 첫 등장 시 괄호 안에 설명"
+  ],
+  "example_titles": [
+    "2026년 상표 출원 통계로 보는 5가지 핵심 트렌드 [특허청 데이터]",
+    "데이터로 보는 상표권 침해 현황: 연간 분쟁 건수와 주요 업종 분석",
+    "AI 상표 검색 시대, 이미지 상표 출원이 3년간 XX% 증가한 이유",
+    "스타트업 상표 출원 현황 분석: 창업 초기 상표 등록률과 브랜드 리스크",
+    "해외 상표 출원 트렌드: 한국 기업의 마드리드 협정 활용 현황 [2025년]"
+  ],
+  "length_guide": "2500~4000자 (분석 섹션 5개 기준)"
+}

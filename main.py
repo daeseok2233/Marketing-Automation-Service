@@ -2,11 +2,17 @@
 마크클라우드 블로그 자동화 파이프라인
 실행: python main.py
 """
-import logging, os
+import logging, os, sys
 from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()  # .env 파일 로드
+
+# Windows cp949 콘솔에서 유니코드 문자(em dash 등) 깨짐 방지
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # ── 로거 설정
 os.makedirs("logs", exist_ok=True)
@@ -24,13 +30,15 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── Import
+from config          import TEMPLATES as ALL_TEMPLATES
 from topic_finder    import TopicFinder
 from templates       import build_angle_prompt
 from generator       import BlogGenerator, quality_check
 from notion_uploader import NotionUploader
 from legal_rag       import LegalRAG
-from screenshot_tool import capture_markview_search, screenshot_to_notion_block
-from exporter        import export_docx
+from screenshot_tool  import capture_markview_search, screenshot_to_notion_block
+from image_generator  import ImageGenerator
+from blog_accounts   import load_accounts
 
 from collectors.naver_datalab  import NaverDataLabCollector
 from collectors.naver_news     import NaverNewsCollector
@@ -40,18 +48,15 @@ from collectors.kipris         import KIPRISCollector
 from collectors.competitor     import CompetitorCollector
 from collectors.law_kr         import LawKrCollector
 
-# 브랜드 조회가 필요한 템플릿 키
-BRAND_CHECK_TEMPLATES = {"brand-check", "quick-verdict", "brand-story"}
-
 # ── 서비스 정의
 SERVICES = {
-    "markview":  {"name":"마크뷰",    "usp":"AI 기반 이미지·텍스트 상표 유사 검색, 국내 유일 이미지 검색",  "url":"https://www.markview.co.kr"},
-    "markpick":  {"name":"마크픽",    "usp":"셀프 상표 출원 + 변리사 대행, 합리적 비용으로 출원 절차 간소화","url":"https://www.markpick.co.kr"},
-    "markpass":  {"name":"마크패스",  "usp":"상표 출원 및 의견제출 자동화 플랫폼, 거절 대응 자동화",        "url":"https://markpass.co.kr"},
-    "markcloud": {"name":"마크클라우드","usp":"AI 기반 지식재산권 분석·컨설팅, 기업 브랜드 보호 솔루션",   "url":"https://www.markcloud.co.kr"},
+    "markview":  {"name":"마크뷰",      "usp":"국내 유일 AI 이미지 상표 검색 + 텍스트 유사 검색, KIPRIS 연동 무제한 상세 검색",         "url":"https://www.markview.co.kr"},
+    "markpick":  {"name":"마크픽",      "usp":"셀프 출원 + 서울대 출신 변리사 대행, Standard 월 10만원부터 합리적 비용으로 상표 출원",  "url":"https://www.markpick.co.kr"},
+    "markpass":  {"name":"마크패스",    "usp":"AI 출원서 자동 작성·KIPRIS 500만 건 DB·거절 대응(의견서·보정서)·마드리드 국제출원 자동화","url":"https://markpass.co.kr"},
+    "markcloud": {"name":"마크클라우드","usp":"브랜드 네이밍 AI 생성 + 상표 침해 가능성 분석 + 위조상품 온라인 모니터링 종합 솔루션",   "url":"https://www.markcloud.co.kr"},
 }
 
-POSTS_PER_DAY = 2  # 하루 생성 포스트 수
+POSTS_PER_DAY = len(ALL_TEMPLATES)  # config.yaml의 templates 개수
 
 
 def collect_all() -> dict:
@@ -96,15 +101,18 @@ def run():
     # 2. 뉴스재킹 앵글 발굴 (Gemini가 오늘 데이터 전체를 읽고 제안)
     log.info("[2/4] 앵글 발굴 (Gemini)")
     finder = TopicFinder()
-    angles = finder.find_angles(raw_data, n=POSTS_PER_DAY)
+    angles = finder.find_angles(raw_data, n=POSTS_PER_DAY, required_templates=ALL_TEMPLATES)
     for a in angles:
         log.info(f"  앵글: {a.get('title','?')} [{a.get('service_key','')}]")
 
     # 3. 글 생성
     log.info("[3/4] 글 생성")
-    generator = BlogGenerator()
-    legal_rag = LegalRAG(raw_data.get("law", {}))
-    posts     = []
+    generator    = BlogGenerator()
+    img_gen      = ImageGenerator()
+    legal_rag    = LegalRAG(raw_data.get("law", {}))
+    blog_accounts = load_accounts()
+    posts        = []
+    log.info(f"  블로그 계정 {len(blog_accounts)}개 로드: {', '.join(blog_accounts.keys())}")
 
     # 뉴스 제목 → 링크 매핑 (참고자료 링크 표시용)
     news_link_map = {
@@ -113,7 +121,18 @@ def run():
         if item.get("link")
     }
 
-    kipris_collector = KIPRISCollector()
+    # 서비스 키 → 블로그 계정 매핑
+    # 지역 블로그(naver_region_*)는 아래 확장 키로 앵글에 service_key 지정 시 활용
+    SERVICE_ACCOUNT_MAP = {
+        "markview":          "naver_brand_people",    # 마크뷰 → 브랜드하는 사람들
+        "markpick":          "naver_trademark_apply", # 마크픽 → 상표출원·등록·중간사건
+        "markpass":          "naver_attorney_jeong",  # 마크패스 → 정상일 변리사
+        "markcloud":         "naver_brand_people",    # 마크클라우드 → 브랜드하는 사람들
+        # 지역 특화 앵글용 (TopicFinder가 서비스 키를 아래로 지정 시 작동)
+        "markpass_seoul":    "naver_region_seoul",
+        "markpass_gyeonggi": "naver_region_gyeonggi",
+        "markpass_busan":    "naver_region_busan",
+    }
 
     for angle in angles:
         svc_key   = angle.get("service_key", "markcloud")
@@ -121,22 +140,15 @@ def run():
         tpl_key   = angle.get("template_key", "info")
         log.info(f"  → [{service['name']}] {tpl_key}형 — {angle.get('title','?')[:30]}...")
 
-        # ── 브랜드 상표 조회 (brand-check / quick-verdict / brand-story 템플릿)
-        brand_name   = angle.get("brand_name") or angle.get("main_keyword", "")
-        kipris_brand = {}
-        if tpl_key in BRAND_CHECK_TEMPLATES and brand_name:
-            try:
-                kipris_brand = kipris_collector.search_brand(brand_name)
-                log.info(f"  [KIPRIS] '{brand_name}' 조회: {kipris_brand.get('summary','')}")
-            except Exception as e:
-                log.warning(f"  [KIPRIS] 브랜드 조회 실패: {e}")
+        # ── 블로그 계정 선택
+        acct_id      = SERVICE_ACCOUNT_MAP.get(svc_key, "naver_brand_people")
+        blog_account = blog_accounts.get(acct_id, {})
 
-        # ── 마크뷰 스크린샷 (image-search-demo + brand-check + quick-verdict)
-        SCREENSHOT_TEMPLATES = {"image-search-demo", "brand-check", "quick-verdict"}
+        # ── 마크뷰 스크린샷 (image-search-demo 템플릿)
         screenshot = {}
-        if tpl_key in SCREENSHOT_TEMPLATES:
+        if tpl_key == "image-search-demo":
             try:
-                screenshot = capture_markview_search(brand_name or angle.get("main_keyword", ""))
+                screenshot = capture_markview_search(angle.get("main_keyword", ""))
                 log.info(f"  [스크린샷] {screenshot.get('path') or screenshot.get('error')}")
             except Exception as e:
                 log.warning(f"  [스크린샷] 캡처 실패: {e}")
@@ -144,8 +156,8 @@ def run():
         legal_context = legal_rag.get_context(angle.get("main_keyword", ""))
         prompt = build_angle_prompt(
             angle, service, raw_data, legal_context,
-            kipris_brand=kipris_brand,
             screenshot=screenshot,
+            blog_account=blog_account,
         )
         post = generator.generate(prompt)
 
@@ -159,9 +171,14 @@ def run():
                 "trend_score":    angle.get("trend_score", 0),
                 "news_reference": news_ref,
                 "news_link":      news_link,
-                "kipris_brand":   kipris_brand,
                 "screenshot":     screenshot,
             })
+
+            # ── 이미지 생성 (IMAGE_GENERATION=true 시 활성화)
+            images = img_gen.generate_for_post(post)
+            if images:
+                post["images"] = images
+                log.info(f"  [이미지] {len(images)}개 생성")
             posts.append(post)
             log.info(f"  [OK] 생성: {post.get('title','?')}")
         else:
@@ -180,17 +197,13 @@ def run():
             try:
                 uploader.upload(p)
                 uploaded += 1
-                # Word 파일도 동시 저장
-                docx_path = export_docx(p)
-                if docx_path:
-                    log.info(f"  [docx] {docx_path.name}")
             except Exception as e:
                 log.error(f"  [ERROR] 업로드 실패: {e}")
     except EnvironmentError as e:
         log.error(f"  [ERROR] 노션 설정 오류: {e}")
 
     log.info("=" * 50)
-    log.info(f" 완료: {uploaded}/{POSTS_PER_DAY}개 저장")
+    log.info(f" 완료: {uploaded}/{len(angles)}개 저장 (템플릿 {len(ALL_TEMPLATES)}종)")
     log.info("=" * 50)
 
 

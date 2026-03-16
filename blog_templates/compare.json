@@ -1,21 +1,59 @@
 {
   "key": "compare",
-  "name": "비교형",
-  "when_to_use": "두 가지 이상 선택지를 비교할 때. '셀프 vs 대행', 'A방법 vs B방법', '국내 vs 해외' 형태의 검색어에 최적.",
-  "not_for": [],
-  "example_titles": [
-    "상표 출원 셀프 vs 변리사 대행, 2024년 기준 완전 비교",
-    "마드리드 국제출원 vs 개별국 출원, 어떤 게 유리할까?",
-    "상표 조사 무료 도구 vs 유료 AI, 실제 차이가 있을까?"
+  "name": "비교·선택 가이드형",
+  "seo_focus": ["SEO", "AEO"],
+  "optimization_notes": {
+    "SEO": "'셀프 vs 대행', 'A방법 vs B방법', '직접 vs 전문가' 등 비교 검색어는 구매 직전 단계(transactional)로 전환율이 높음. 비교표 포함 시 Rich Result 가능성↑.",
+    "AEO": "'어떤 방식이 더 나은가요?', '상황별 추천은?' 형식의 H2로 AI 검색의 '추천' 답변 인용 유도. 결론을 명확히 제시해야 AI가 인용 가능."
+  },
+  "when_to_use": [
+    "두 가지 이상 선택지를 비교할 때",
+    "'셀프 vs 대행', 'A방법 vs B방법', '국내 vs 해외' 형태의 검색어",
+    "독자가 어떤 선택을 해야 할지 결정을 도와야 할 때"
+  ],
+  "not_for": [
+    "비교 대상이 명확하지 않은 일반 정보"
+  ],
+  "target_blog_concepts": ["창업자의 상표 가이드", "상표 사전"],
+  "image_hints": [
+    {
+      "position": "cover",
+      "prompt": "Split-screen comparison illustration. Left: solo person with documents. Right: professional consultant with briefcase. VS symbol in center. Clean comparison concept. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image. Suitable for a Korean IP trademark business blog.",
+      "alt_text": "셀프 vs 전문가 대행 비교 커버 이미지"
+    },
+    {
+      "position": "mid",
+      "prompt": "Balance scale weighing two options: coins and clock on one side, trophy and shield on the other. Decision making concept for business. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image.",
+      "alt_text": "비용 대비 효과 비교 이미지"
+    }
   ],
   "structure": [
-    "[비교형 구조]",
-    "**도입**: '어느 쪽이 나에게 맞을까?' 공감 → '5분이면 결정 가능' 예고",
-    "**H2: {kw}, 왜 선택이 어려운가요?** → 배경 + {bigkinds}",
-    "**H2: 셀프 방식의 장단점은?** → 장점(비용↓) / 단점(거절 리스크) / 적합 상황",
-    "**H2: 전문가 대행의 장단점은?** → 장점(성공률↑) / 단점(비용↑) / 적합 상황",
-    "**H2: {svc}은 어떤 방식인가요?** → 두 방식 장점 결합 포지셔닝 / {usp}",
-    "**H2: 내 상황엔 어떤 선택이 맞을까요?** → 상황별 추천 표(예산·시간·복잡도 기준)",
-    "**마무리**: 명확한 결론 + {svc} 링크 + 무료 체험 CTA"
-  ]
+    "[비교·선택 가이드형 구조]",
+    "**도입** (100~150자): '어느 쪽이 나에게 맞을까?' 공감 → '5분이면 결정 가능' 예고. 비교 대상 두 가지 명시.",
+    "[📷 커버 이미지 자동 삽입 위치: 도입부 직후 — 두 선택지를 대비하는 split-screen 또는 VS 비교 이미지]",
+    "**H2: {kw}, 왜 선택이 어려운가요?** → 각 방식의 장단점 공존 배경 + {bigkinds}",
+    "**H2: 셀프 방식, 어떤 장단점이 있나요?** → 장점(비용↓, 속도) / 단점(거절 리스크, 전문지식 필요) / 적합 상황",
+    "**H2: 전문가 대행 방식, 어떤 장단점이 있나요?** → 장점(성공률↑, 편의) / 단점(비용↑) / 적합 상황",
+    "[📷 중간 이미지 자동 삽입 위치: 비교표 직전 — 저울/균형 비교 이미지]",
+    "**[비교표]** → 항목(비용·기간·성공률·난이도·적합 대상)별 두 방식 비교 표",
+    "**H2: {svc}은 어떤 방식인가요?** → 두 방식 장점 결합 포지셔닝({usp}) / 차별점 명시",
+    "**H2: 내 상황에는 어떤 선택이 맞을까요?** → 상황별 추천 (예산·시간·복잡도 기준) / 명확한 결론 제시",
+    "**마무리** (80~120자): 명확한 결론 1문장 + {svc} 링크 + 무료 체험 CTA"
+  ],
+  "writing_rules": [
+    "비교표는 반드시 포함 (텍스트 표 형식 가능)",
+    "H2: '내 상황에는...' 섹션에서 명확한 추천 결론 제시 (AI 인용 최적화)",
+    "양쪽 방식 모두 공정하게 장단점 기술 (한쪽만 칭찬하면 신뢰도↓)",
+    "서비스 소개는 '두 방식의 장점을 결합' 포지셔닝으로",
+    "숫자(비용·기간·성공률)는 구체적으로 명시"
+  ],
+  "meta_description_format": "{kw} 셀프 vs 대행, 어떤 방식이 더 유리할까요? 비용·기간·성공률 비교표로 내 상황에 맞는 선택을 도와드립니다.",
+  "example_titles": [
+    "상표 출원 셀프 vs 변리사 대행, 2026년 기준 완전 비교",
+    "마드리드 국제출원 vs 개별국 출원, 어떤 게 유리할까?",
+    "상표 조사 무료 도구 vs 유료 AI, 실제 차이가 있을까?",
+    "셀프 상표 출원 vs 마크픽 대행: 비용·기간·성공률 비교",
+    "상표 등록 직접 vs 전문가, 초보 창업자라면 어떤 선택이 맞을까?"
+  ],
+  "length_guide": "2000~3000자"
 }

@@ -1,20 +1,13 @@
-"""Gemini 2.0 Flash 블로그 생성 + 품질 검수"""
-import os, json, re, time
+"""Gemini 블로그 생성 + 품질 검수"""
+import os, sys, json, re, time
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import requests as _req
 from google import genai
 from google.genai import types
 from schema import BlogPost
+from config import TEXT_MODELS as MODELS, OLLAMA_URL as _OLLAMA_DEFAULT, QUALITY
 
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-
-# 무료 한도 소진 시 순서대로 폴백 (각 모델 독립 쿼터)
-MODELS = [
-    "gemini-2.0-flash",       # 1순위: 빠름, 15 RPM 무료
-    "gemini-2.0-flash-lite",  # 2순위: 더 빠름, 30 RPM 무료
-    "gemini-2.5-flash-lite",  # 3순위: 신규 경량, 독립 쿼터
-    "gemini-2.5-flash",       # 4순위: 고품질, 10 RPM 무료
-    "gemini-flash-lite-latest", # 5순위: 최신 lite 알리아스
-]
+OLLAMA_URL = os.environ.get("OLLAMA_URL", _OLLAMA_DEFAULT)
 
 class BlogGenerator:
     def __init__(self):
@@ -127,11 +120,11 @@ def quality_check(post: dict) -> tuple[bool, str]:
         full_text = post.get("body", "")
 
     checks = [
-        (len(full_text) >= 1500, f"본문 부족 ({len(full_text)}자)"),
-        (len(title)     >= 15,   f"제목 짧음 ({len(title)}자)"),
-        (full_text.count(svc) >= 2, f"서비스 언급 부족 ({svc} {full_text.count(svc)}회)"),
-        (len(tags)      >= 4,    f"해시태그 부족 ({len(tags)}개)"),
-        (len(meta)      >= 20,   "메타설명 없음"),
+        (len(full_text) >= QUALITY["min_body_length"],     f"본문 부족 ({len(full_text)}자)"),
+        (len(title)     >= QUALITY["min_title_length"],    f"제목 짧음 ({len(title)}자)"),
+        (full_text.count(svc) >= QUALITY["min_service_mentions"], f"서비스 언급 부족 ({svc} {full_text.count(svc)}회)"),
+        (len(tags)      >= QUALITY["min_hashtags"],        f"해시태그 부족 ({len(tags)}개)"),
+        (len(meta)      >= QUALITY["min_meta_length"],     "메타설명 없음"),
     ]
     for ok, reason in checks:
         if not ok:

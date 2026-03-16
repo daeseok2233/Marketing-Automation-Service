@@ -1,19 +1,65 @@
 """노션 데이터베이스 자동 업로드"""
-import os, requests
+import os, re, requests
 from datetime import date
+
+
+def _rich_text(text: str) -> list:
+    """마크다운 인라인 서식(**bold**, *italic*) → Notion rich_text 배열로 변환"""
+    parts = []
+    # **bold** 또는 *italic* 파싱
+    pattern = re.compile(r'\*\*(.+?)\*\*|\*(.+?)\*')
+    last = 0
+    for m in pattern.finditer(text):
+        if m.start() > last:
+            parts.append({"type": "text", "text": {"content": text[last:m.start()]}})
+        if m.group(1) is not None:  # **bold**
+            parts.append({"type": "text", "text": {"content": m.group(1)},
+                          "annotations": {"bold": True}})
+        else:  # *italic*
+            parts.append({"type": "text", "text": {"content": m.group(2)},
+                          "annotations": {"italic": True}})
+        last = m.end()
+    if last < len(text):
+        parts.append({"type": "text", "text": {"content": text[last:]}})
+    if not parts:
+        parts = [{"type": "text", "text": {"content": text}}]
+    # Notion rich_text 단일 항목 2000자 제한
+    result = []
+    for p in parts:
+        content = p["text"]["content"]
+        for i in range(0, max(len(content), 1), 2000):
+            chunk = dict(p)
+            chunk["text"] = dict(p["text"])
+            chunk["text"]["content"] = content[i:i+2000]
+            result.append(chunk)
+    return result
+
+
+def _strip_md(text: str) -> str:
+    """소제목 등에서 **마크다운** 기호만 제거한 순수 텍스트 반환"""
+    return re.sub(r'\*+', '', text).strip()
 
 
 def _h2(text: str) -> dict:
     return {"object": "block", "type": "heading_2",
-            "heading_2": {"rich_text": [{"type": "text", "text": {"content": text}}]}}
+            "heading_2": {"rich_text": [{"type": "text", "text": {"content": _strip_md(text)}}]}}
 
 def _bullet(text: str) -> dict:
     return {"object": "block", "type": "bulleted_list_item",
-            "bulleted_list_item": {"rich_text": [{"type": "text", "text": {"content": text[:2000]}}]}}
+            "bulleted_list_item": {"rich_text": _rich_text(text[:2000])}}
 
 def _para(text: str) -> dict:
     return {"object": "block", "type": "paragraph",
-            "paragraph": {"rich_text": [{"type": "text", "text": {"content": text[:2000]}}]}}
+            "paragraph": {"rich_text": _rich_text(text[:2000])}}
+
+def _image_block(url: str, caption: str = "") -> dict:
+    block = {
+        "object": "block", "type": "image",
+        "image": {"type": "external", "external": {"url": url}},
+    }
+    if caption:
+        block["image"]["caption"] = [{"type": "text", "text": {"content": caption[:2000]}}]
+    return block
 
 def _divider() -> dict:
     return {"object": "block", "type": "divider", "divider": {}}
@@ -184,28 +230,46 @@ class NotionUploader:
 
     def _build(self, post: dict, date_str: str) -> dict:
         blocks = []
+        images = post.get("images", [])  # [{position, url, alt_text, ...}]
+
+        def _insert_images(position: str):
+            for img in images:
+                if img.get("position") == position and img.get("url"):
+                    blocks.append(_image_block(img["url"], img.get("alt_text", "")))
+
+        def _paras(text: str):
+            """줄바꿈 기준으로 분리 후 각각 paragraph 블록으로 추가"""
+            for line in text.split("\n"):
+                line = line.strip()
+                if line:
+                    blocks.append(_para(line))
 
         # ── 본문 렌더링 (구조형: intro + body[sections] + conclusion + cta)
         if isinstance(post.get("body"), list):
             # 도입부
             intro = post.get("intro", "")
-            for i in range(0, len(intro), 2000):
-                blocks.append(_para(intro[i:i+2000]))
+            _paras(intro)
+            _insert_images("cover")  # 커버 이미지: 도입부 직후
 
             # 본론 섹션 (H2 소제목 + 내용)
-            for section in post.get("body", []):
+            body_sections = post.get("body", [])
+            mid_idx = max(1, len(body_sections) // 2)  # 중간 지점
+            for idx, section in enumerate(body_sections):
                 if isinstance(section, dict):
                     heading = section.get("heading", "")
                     content = section.get("content", "")
                     if heading:
                         blocks.append(_h2(heading))
-                    for i in range(0, len(content), 2000):
-                        blocks.append(_para(content[i:i+2000]))
+                    _paras(content)
+                if idx == mid_idx - 1:
+                    _insert_images("mid")  # 중간 이미지: 절반 섹션 후
+
+            # 마무리 전 이미지
+            _insert_images("outro")
 
             # 마무리
             conclusion = post.get("conclusion", "")
-            for i in range(0, len(conclusion), 2000):
-                blocks.append(_para(conclusion[i:i+2000]))
+            _paras(conclusion)
 
             # CTA
             cta = post.get("cta", "")
@@ -215,6 +279,7 @@ class NotionUploader:
         else:
             # 구형 flat body 폴백 (하위 호환)
             body = post.get("body", "")
+            _insert_images("cover")
             for i in range(0, len(body), 2000):
                 blocks.append({
                     "object": "block", "type": "paragraph",

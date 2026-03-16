@@ -6,7 +6,66 @@
 import json
 from pathlib import Path
 
-TEMPLATES_DIR = Path(__file__).parent / "blog_templates"
+TEMPLATES_DIR    = Path(__file__).parent / "blog_templates"
+KNOWLEDGE_FILE   = Path(__file__).parent / "services" / "company_knowledge.json"
+
+
+def _load_company_knowledge() -> dict:
+    try:
+        return json.loads(KNOWLEDGE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+_KNOWLEDGE: dict = _load_company_knowledge()
+
+# service_key → 상세 설명 문자열 (프롬프트 삽입용)
+_SERVICE_KEY_MAP = {
+    "markview":  "markview",
+    "markpick":  "markpick",
+    "markpass":  "markpass",
+    "markcloud": "markcloud_service",
+}
+
+def _build_service_knowledge_block(service_key: str) -> str:
+    """company_knowledge.json에서 해당 서비스 정보를 읽어 프롬프트용 텍스트로 변환"""
+    svc_id  = _SERVICE_KEY_MAP.get(service_key, "markcloud_service")
+    svc     = _KNOWLEDGE.get("services", {}).get(svc_id, {})
+    if not svc:
+        return ""
+
+    lines = [
+        f"서비스명: {svc.get('name','')} ({svc.get('brand','')})",
+        f"설명: {svc.get('description','')}",
+    ]
+
+    features = svc.get("features", {})
+    if features:
+        lines.append("주요 기능:")
+        for fname, fdata in features.items():
+            if isinstance(fdata, dict):
+                desc = fdata.get("description", "")
+                detail = fdata.get("detail", "")
+                price = fdata.get("price", "")
+                unique = fdata.get("uniqueness", "")
+                parts = [f"  · {fname}: {desc}"]
+                if detail:   parts.append(f"    ({detail})")
+                if price:    parts.append(f"    [가격: {price}]")
+                if unique:   parts.append(f"    [{unique}]")
+                lines.append(" ".join(parts))
+            else:
+                lines.append(f"  · {fname}: {fdata}")
+
+    plans = svc.get("plans", {})
+    if plans:
+        lines.append("요금제:")
+        for pname, pdata in plans.items():
+            lines.append(f"  · {pname}: {pdata.get('unit','')}")
+
+    benefits = svc.get("key_benefits", [])
+    if benefits:
+        lines.append("핵심 가치: " + " / ".join(benefits))
+
+    return "\n".join(lines)
 
 COMMON_RULES = """
 ━━━ 작성 규칙 ━━━
@@ -64,8 +123,8 @@ def build_angle_prompt(
     service: dict,
     raw_data: dict,
     legal_context: str = "",
-    kipris_brand: dict = None,
     screenshot: dict = None,
+    blog_account: dict = None,
 ) -> str:
     """뉴스재킹 앵글 기반 프롬프트 — TopicFinder 결과를 받아 실제 글 생성용 프롬프트 빌드"""
     tpl_key = angle.get("template_key", "info")
@@ -93,9 +152,6 @@ def build_angle_prompt(
         if bk_data.get("recent_count") else ""
     )
 
-    # 브랜드 조회 결과 요약 (템플릿 구조 내 {kipris_result_block} 치환용)
-    brand_name_val = (kipris_brand or {}).get("brand_name", angle.get("main_keyword", ""))
-    kipris_result_val = (kipris_brand or {}).get("summary", "") if kipris_brand else ""
     screenshot_val = ("캡처 완료" if (screenshot or {}).get("success") else "미첨부") if screenshot else ""
 
     body = tpl.format(
@@ -104,26 +160,8 @@ def build_angle_prompt(
         usp=service["usp"],
         bigkinds=bk_stat,
         kipris=kipris_stat,
-        brand_name=brand_name_val,
-        kipris_result_block=kipris_result_val,
         screenshot_block=screenshot_val,
     )
-
-    # ── 브랜드 KIPRIS 조회 결과 블록
-    kipris_brand_block = ""
-    if kipris_brand and kipris_brand.get("found"):
-        lines = [f"[KIPRIS 조회 결과] {kipris_brand['summary']}"]
-        for item in kipris_brand.get("items", []):
-            status    = item.get("status", "")
-            app_no    = item.get("application_number", "")
-            app_date  = item.get("application_date", "")
-            applicant = item.get("applicant", "")
-            cls_code  = item.get("goods_class", "")
-            title     = item.get("title", "")
-            lines.append(f"  · {title} | {cls_code} | 출원일 {app_date} | 상태: {status} | 출원인: {applicant} | 출원번호: {app_no}")
-        kipris_brand_block = "\n".join(lines)
-    elif kipris_brand:
-        kipris_brand_block = f"[KIPRIS 조회 결과] {kipris_brand.get('summary', '')}"
 
     # ── 스크린샷 상태 블록
     screenshot_block = ""
@@ -136,7 +174,29 @@ def build_angle_prompt(
     news_ref = angle.get("news_reference", "")
     hook = angle.get("hook", "")
 
+    # ── 회사 서비스 상세 지식 블록
+    svc_key = angle.get("service_key", "markcloud")
+    knowledge_block = _build_service_knowledge_block(svc_key)
+    company_info    = _KNOWLEDGE.get("company", {})
+    company_block = (
+        f"회사명: {company_info.get('name','')} / 슬로건: {company_info.get('tagline','')}\n"
+        f"타깃 고객: {', '.join(company_info.get('target_users',[]))}\n"
+        f"핵심 경쟁 우위: {' / '.join(_KNOWLEDGE.get('competitive_advantages',[]))}"
+        if company_info else ""
+    )
+
+    # ── 블로그 계정 컨텍스트
+    from blog_accounts import build_account_block
+    account_block = build_account_block(blog_account or {})
+
     return f"""당신은 한국 지식재산권·상표 전문 블로그 작가입니다.
+
+━━━ 회사 및 서비스 정보 (Context) ━━━
+{company_block}
+
+{knowledge_block}
+
+{account_block}
 
 ━━━ 오늘의 뉴스재킹 앵글 ━━━
 참조 뉴스/트렌드 : {news_ref}
@@ -156,7 +216,6 @@ def build_angle_prompt(
 {example_block}
 
 {body}
-{f"━━━ KIPRIS 브랜드 조회 데이터 ━━━{chr(10)}{kipris_brand_block}" if kipris_brand_block else ""}
 {f"━━━ 마크뷰 스크린샷 ━━━{chr(10)}{screenshot_block}" if screenshot_block else ""}
 {COMMON_RULES}
 
@@ -215,8 +274,13 @@ def build_prompt(template_key: str, topic: dict, service: dict) -> str:
         kipris=topic.get("news_context", ""),
     )
     related = ", ".join(topic.get("related_keywords", []))
+    svc_key       = topic.get("service_key", "markcloud")
+    knowledge_block = _build_service_knowledge_block(svc_key)
 
     return f"""당신은 한국 지식재산권·상표 전문 블로그 작가입니다.
+
+━━━ 서비스 상세 정보 (Context) ━━━
+{knowledge_block}
 
 ━━━ 블로그 데이터 ━━━
 메인 키워드 : {topic["main_keyword"]}

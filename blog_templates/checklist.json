@@ -1,0 +1,90 @@
+{
+  "key": "checklist",
+  "name": "체크리스트·단계별 실전가이드형",
+  "seo_focus": ["SEO"],
+  "optimization_notes": {
+    "SEO": "단계별 구조(H2=단계)로 '~하는 방법', '~절차', '~순서' 키워드 커버. 체크리스트 형식은 체류 시간↑ 이탈률↓ → 검색 순위 상승. 리스트 마크업으로 Rich Result 가능.",
+    "UX": "독자가 실제로 따라 할 수 있는 실행 중심 콘텐츠. 단계마다 체크박스 개념으로 구성해 완독률 증가."
+  },
+  "when_to_use": [
+    "독자가 직접 실행해야 하는 프로세스 설명 (상표 출원 절차, 상표 검색 방법 등)",
+    "'~하는 방법', '~절차', '~순서', '~체크리스트' 검색 의도",
+    "초보자·창업자 대상 실용 가이드",
+    "경쟁사 대비 더 구체적이고 실행 가능한 콘텐츠로 차별화"
+  ],
+  "not_for": [
+    "단순 정보 나열 (info형이 적합)",
+    "뉴스 이슈 반응형 콘텐츠"
+  ],
+  "target_blog_concepts": ["창업자의 상표 가이드", "AI 상표 자동화"],
+  "image_hints": [
+    {
+      "position": "cover",
+      "prompt": "Clean checklist illustration. Clipboard with checkbox icons being ticked one by one. Business process completion theme. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image. Suitable for a Korean IP trademark business blog.",
+      "alt_text": "{main_keyword} 체크리스트 커버 이미지"
+    },
+    {
+      "position": "mid",
+      "prompt": "Person completing a step-by-step business checklist. Progress bar showing completion. Document review with checkmarks. Professional office setting. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image.",
+      "alt_text": "단계별 실행 체크리스트 진행 이미지"
+    }
+  ],
+  "structure": {
+    "title_format": "{main_keyword} 완벽 체크리스트: {n}단계로 끝내는 실전 가이드",
+    "title_alt": "{main_keyword} 처음 해보는 분을 위한 단계별 완전 정복 [{year}년 최신]",
+    "meta_description": "{main_keyword} 처음이라면? {n}단계 체크리스트로 놓치는 것 없이 완벽하게. {sub_keyword} 포함 실전 가이드.",
+    "intro": {
+      "length": "150~200자",
+      "must_include": ["독자 상황 공감", "이 글 완독 시 얻는 것 명시", "예상 소요 시간 또는 난이도"],
+      "pattern": "처음 {main_keyword}을 준비하는 분들이 가장 많이 실수하는 부분은 바로 '순서'입니다. 이 체크리스트를 따라가면 {n}단계로 빠짐없이 완료할 수 있습니다.",
+      "image_placement": "[📷 커버 이미지 자동 삽입 위치: 도입부 직후 — 체크리스트/단계 프로세스 시각화]"
+    },
+    "prerequisite_box": {
+      "optional": true,
+      "format": "📋 시작 전 준비물 또는 사전 체크",
+      "content": "필요 서류·계정·예산 등 선행 조건 리스트"
+    },
+    "steps": {
+      "count": "5~8단계",
+      "h2_format": "STEP {n}. {단계명} — {핵심 키워드}",
+      "per_step": {
+        "what": "이 단계에서 할 일 1문장 요약",
+        "how": "구체적 실행 방법 (200~350자)",
+        "checklist_items": "☑ 체크 항목 3~5개 (불릿 또는 체크박스 형식)",
+        "tip_or_warning": "💡 TIP 또는 ⚠️ 주의 (선택, 1개)",
+        "service_integration": "해당 단계에서 서비스 활용 방법 자연 연결 (모든 단계 X, 2~3단계만)"
+      },
+      "mid_image_placement": "[📷 중간 이미지 자동 삽입 위치: 3~4번째 단계 후 — 실행 과정 시각화]"
+    },
+    "summary_table": {
+      "optional": true,
+      "format": "전체 단계 요약 표 (단계 | 할 일 | 예상 기간 | 비용)",
+      "position": "intro 직후 또는 outro 직전"
+    },
+    "service_cta": {
+      "position": "핵심 단계(3~4번째) 자연 삽입 1회 + 마지막",
+      "tone": "실행 도구로서의 서비스 소개 (문제 해결 맥락)",
+      "format": "마크픽(출원 대행) 또는 마크뷰(검색) 또는 마크패스(자동화) 중 angle에 맞게"
+    },
+    "outro": {
+      "length": "100~150자",
+      "must_include": ["전체 단계 요약 1문장", "다음 행동 유도 (CTA)"],
+      "pattern": "이 {n}단계 체크리스트를 따라가면 {main_keyword}을 빠짐없이 완료할 수 있습니다. 더 빠른 처리를 원하신다면 {service}를 활용해보세요."
+    }
+  },
+  "writing_rules": [
+    "각 단계는 독립적으로 읽혀야 함",
+    "동사로 시작하는 실행형 문장 우선 ('확인하세요', '입력하세요', '선택하세요')",
+    "숫자와 기간을 구체적으로 명시",
+    "복잡한 법률/절차 용어는 괄호 안에 쉬운 설명 추가",
+    "모바일 가독성: 긴 문단보다 짧은 문장 + 불릿 선호"
+  ],
+  "example_titles": [
+    "상표 출원 완벽 체크리스트: 7단계로 끝내는 실전 가이드 [2026년 최신]",
+    "창업자를 위한 상표 등록 체크리스트: 놓치면 안 되는 5가지",
+    "AI 상표 검색 → 출원까지 단계별 완전 정복 체크리스트",
+    "상표 거절 대응 체크리스트: 의견제출부터 재출원까지 6단계",
+    "마드리드 해외 상표 출원 체크리스트: 국가별 준비 가이드"
+  ],
+  "length_guide": "2500~3500자 (8단계 기준)"
+}

@@ -1,0 +1,86 @@
+{
+  "key": "faq",
+  "name": "FAQ 완전정복형",
+  "seo_focus": ["AEO", "SEO"],
+  "optimization_notes": {
+    "AEO": "질문 형식 H2 → 구글 Featured Snippet 및 AI 검색(ChatGPT, Gemini, Perplexity) 직접 인용 유도. 각 답변은 2~3문장으로 직접 답변 후 부연.",
+    "SEO": "'~란?', '~하는 방법', '~비용' 등 검색 의도(informational/transactional)를 모두 커버하는 롱테일 키워드 자연 배치."
+  },
+  "when_to_use": [
+    "독자가 특정 주제에 대해 여러 궁금증을 가지고 있을 때",
+    "검색 의도가 다양한 키워드 (상표 출원이란, 상표 출원 비용, 상표 출원 기간 등)",
+    "AI 검색 엔진에 정확한 사실 정보로 노출되길 원할 때",
+    "브랜드 신뢰도 구축 목적의 에버그린 콘텐츠"
+  ],
+  "not_for": [
+    "단일 사건·사례 중심 뉴스재킹",
+    "특정 제품 기능 데모"
+  ],
+  "target_blog_concepts": ["상표 사전", "창업자의 상표 가이드"],
+  "image_hints": [
+    {
+      "position": "cover",
+      "prompt": "Speech bubbles with question marks and answer icons arranged in a grid pattern. Knowledge sharing FAQ concept. Q&A dialogue bubbles floating. Deep blue and white colors. Flat design, modern corporate illustration. Color palette: deep blue, white, light gray. Clean, minimal, professional B2B style. Absolutely no text, no letters, no words in the image. Suitable for a Korean IP trademark business blog.",
+      "alt_text": "{main_keyword} FAQ 커버 이미지"
+    }
+  ],
+  "structure": {
+    "title_format": "{main_keyword} FAQ: 자주 묻는 {n}가지 질문 완전 정복",
+    "title_alt": "{main_keyword}에 대해 가장 많이 묻는 질문 TOP {n} | 전문가 답변",
+    "meta_description": "{main_keyword}에 관한 핵심 FAQ {n}가지를 전문가가 명쾌하게 답변합니다. {sub_keyword1}, {sub_keyword2} 등 실전 궁금증 해결.",
+    "intro": {
+      "length": "150~200자",
+      "must_include": ["main_keyword 1회 자연 포함", "독자 고민 공감 1문장", "이 글에서 다루는 내용 한 줄 요약"],
+      "pattern": "'{main_keyword}'에 대해 이런 질문을 해본 적 있으신가요? 많은 분들이 궁금해하는 {n}가지 핵심 질문에 전문가가 직접 답변해드립니다.",
+      "image_placement": "[📷 커버 이미지 자동 삽입 위치: 도입부 직후 — Q&A 말풍선 그리드 이미지]"
+    },
+    "faq_block": {
+      "count": "7~10개",
+      "h2_format": "Q. {질문} (검색 의도 키워드 포함)",
+      "answer_format": {
+        "direct_answer": "A. {2~3문장 직접 답변 — Featured Snippet 타겟}",
+        "detail": "상세 설명 (200~400자), 필요 시 표 또는 리스트",
+        "service_link": "관련 서비스 자연 연결 (강요 X, 1~2회)"
+      },
+      "question_categories": [
+        "정의형: ~란 무엇인가요?",
+        "방법형: ~는 어떻게 하나요?",
+        "비용형: ~비용은 얼마인가요?",
+        "기간형: ~기간은 얼마나 걸리나요?",
+        "비교형: ~와 ~의 차이는?",
+        "주의형: ~할 때 주의할 점은?",
+        "법률형: ~하면 법적으로 문제가 되나요?"
+      ]
+    },
+    "data_section": {
+      "must_include": true,
+      "content": "통계 수치 1개 이상 (특허청 KIPRIS 데이터, 빅카인즈 분석, 연간 출원 건수 등)",
+      "format": "💡 전문가 TIP 또는 📊 데이터로 보는 현황 박스"
+    },
+    "service_cta": {
+      "position": "FAQ 5번째 이후 자연스럽게 삽입 1회 + 마지막 섹션",
+      "tone": "강요 X, 문제 해결 맥락에서 자연 연결",
+      "format": "마크뷰/마크픽/마크패스/마크클라우드 중 angle에 맞는 1개만"
+    },
+    "outro": {
+      "length": "100~150자",
+      "must_include": ["핵심 요약 1문장", "추가 문의 유도 또는 관련 글 링크 안내"]
+    },
+    "schema_markup_hint": "FAQ Page schema (JSON-LD) 적용 권장 — 검색 결과 FAQ 리치 스니펫 노출"
+  },
+  "writing_rules": [
+    "각 Q&A는 독립적으로 읽혀야 함 (AI가 개별 답변만 발췌해도 완결)",
+    "답변 첫 문장에 반드시 키워드 포함",
+    "숫자·기간·비용은 구체적으로 (예: '약 12개월', '10~30만원')",
+    "출처 명시 가능한 공식 데이터 우선 사용 (특허청, 법령, KIPRIS)",
+    "광고성 표현 최소화, 정보 신뢰도 우선"
+  ],
+  "example_titles": [
+    "상표 출원 FAQ: 자주 묻는 10가지 질문 완전 정복",
+    "상표권 침해 FAQ | 실제 사례로 보는 전문가 답변 TOP 8",
+    "AI 상표 검색 FAQ: 마크뷰로 할 수 있는 것들 총정리",
+    "셀프 상표 출원 FAQ: 초보자가 꼭 알아야 할 7가지 질문",
+    "상표 거절 FAQ: 왜 거절되고 어떻게 대응하나요?"
+  ],
+  "length_guide": "2000~3000자 (FAQ 10개 기준)"
+}

@@ -1,0 +1,16 @@
+{
+  "account_id": "naver_region_seoul",
+  "platform": "naver_blog",
+  "account_name": "서울 특허·디자인·상표출원 블로그",
+  "url": "",
+  "tone": "지역 밀착형 실용 정보 블로그. 서울 소재 기업·창업자 대상. 지역 특성에 맞는 업종(IT·패션·식음료·플랫폼)과 IP를 연결하는 내용 중심. 친근하고 접근하기 쉬운 문체.",
+  "target_audience": "서울 지역 스타트업, 소상공인, 창업자, 서울 소재 중소기업 IP 담당자",
+  "seo_focus_keywords": ["서울 상표 출원", "서울 특허 출원", "서울 변리사", "강남 상표 등록", "서울 창업 상표"],
+  "writing_persona": "서울에서 활동하는 IP 전문가. 지역 비즈니스 트렌드와 IP를 연결해주는 실용적 안내자.",
+  "cta_style": "지역 밀착형 신뢰 CTA. '서울 사업체 상표 보호, 지금 바로 확인하세요' 스타일.",
+  "preferred_structure": "지역/업종 이슈 → IP 필요성 → 출원 방법 → 서비스 안내",
+  "local_keywords": ["서울", "강남", "강북", "종로", "마포", "성수", "홍대", "여의도"],
+  "avoid": ["타 지역 과도한 언급", "지역 비하"],
+  "posting_schedule": "주 2회",
+  "active": true
+}

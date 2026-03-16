@@ -107,7 +107,7 @@ def export_docx(post: dict) -> Path | None:
         # ── 파일명 생성: YYYYMMDD_서비스_제목(30자).docx
         date_str   = datetime.now().strftime("%Y%m%d")
         svc        = post.get("service_key", "blog")
-        title_safe = re.sub(r'[\\/:*?"<>|]', "_", post.get("title", "post"))[:30]
+        title_safe = re.sub(r'[\\/:*?"<>|\u2014\u2013]', "_", post.get("title", "post"))[:30]
         filepath   = OUTPUT_DIR / f"{date_str}_{svc}_{title_safe}.docx"
 
         doc.save(filepath)

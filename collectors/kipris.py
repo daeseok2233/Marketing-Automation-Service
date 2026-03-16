@@ -6,7 +6,7 @@ from datetime import datetime
 class KIPRISCollector:
     def __init__(self):
         self.api_key  = os.environ.get("KIPRIS_API_KEY", "")
-        self.base_url = "http://plus.kipris.or.kr/openapi/rest"
+        self.base_url = "http://plus.kipris.or.kr/kipo-api/kipi"
 
     def collect(self) -> dict:
         year = datetime.now().year
@@ -23,7 +23,7 @@ class KIPRISCollector:
                 "query":                "상표",
                 "applicationStartDate": f"{year}0101",
                 "applicationEndDate":   datetime.now().strftime("%Y%m%d"),
-                "accessKey":            self.api_key,
+                "ServiceKey":           self.api_key,
                 "numOfRows":            1,
             }
             res = requests.get(url, params=params, timeout=15)
@@ -76,7 +76,7 @@ class KIPRISCollector:
             url = f"{self.base_url}/trademarkInfoSearchService/search"
             params = {
                 "query":      brand_name,
-                "accessKey":  self.api_key,
+                "ServiceKey": self.api_key,
                 "numOfRows":  max_results,
                 "pageNo":     1,
             }
