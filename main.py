@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 # ── Import
 from topic_finder    import TopicFinder
 from templates       import build_angle_prompt
-from blog_generator.generator import BlogGenerator, quality_check
+from blog_generator.gen_llm import BlogGenerator, quality_check
 from notion_uploader import NotionUploader
 from legal_rag       import LegalRAG
 from screenshot_tool import capture_markview_search

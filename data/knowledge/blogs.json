@@ -1,22 +1,22 @@
 {
   "blogs": {
-    "blog_1": {
+    "blog_01": {
       "name": "브랜드하는 사람들 Blog",
       "description": ""
     },
-    "blog_2": {
+    "blog_02": {
       "name": "상표출원, 상표등록, 중간사건 Blog",
       "description": ""
     },
-    "blog_3": {
+    "blog_03": {
       "name": "정상일 변리사 특허, 디자인, 상표 Blog",
       "description": ""
     },
-    "blog_4": {
+    "blog_04": {
       "name": "지역 키워드를 활용한 특허/디자인/상표출원",
       "description": ""
     },
-    "blog_5": {
+    "blog_05": {
       "name": "지역 키워드를 활용한 특허/디자인/상표출원",
       "description": ""
     }
