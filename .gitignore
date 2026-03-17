@@ -26,3 +26,8 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# 업로드 불가 데이터
+data/logs/
+data/images/
+data/reference/

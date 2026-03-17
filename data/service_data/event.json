@@ -1,0 +1,9 @@
+{
+  "event": {
+    "event_01": {
+      "descruption": "블로그 보고 문의 시 \"마크뷰 블로그 보고 왔습니다\" 말하면 1만원 추가 할인",
+      "image": "image_mark_pick_coupon.png",
+      "active": "True"
+    }
+  }
+}
