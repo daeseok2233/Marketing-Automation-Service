@@ -5,7 +5,7 @@ Google Trends RSS에서 한국 실시간 인기 검색어 + 관련 뉴스 제목
 """
 import requests
 import xml.etree.ElementTree as ET
-from collectors import save_csv
+from .utils import save_csv
 
 TRENDING_RSS = "https://trends.google.com/trending/rss?geo=KR"
 NS = {"ht": "https://trends.google.com/trending/rss"}

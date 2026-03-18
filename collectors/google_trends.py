@@ -1,7 +1,7 @@
 """Google Trends — pytrends (429 시 조용히 스킵)"""
 import time
 from pytrends.request import TrendReq
-from collectors import save_csv
+from .utils import save_csv
 
 TREND_KEYWORDS = [
     # ── 핵심 키워드

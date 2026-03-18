@@ -6,7 +6,7 @@
 import os
 import re
 import requests
-from collectors import save_csv
+from .utils import save_csv
 
 # ── 쿼리 확장: 핵심 + 롱테일 + 업종별 + 질문형
 QUERIES = [

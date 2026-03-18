@@ -7,7 +7,7 @@ import os
 import re
 import requests
 import xml.etree.ElementTree as ET
-from collectors import save_csv
+from .utils import save_csv
 
 # ── 네이버 뉴스 API 쿼리: 상표/IP에 특화된 키워드
 NAVER_QUERIES = [

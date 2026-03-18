@@ -6,7 +6,7 @@
 """
 import re
 import requests
-from collectors import save_csv
+from .utils import save_csv
 
 # ── 시드 키워드: 자동완성을 펼칠 기본 키워드
 SEED_KEYWORDS = [

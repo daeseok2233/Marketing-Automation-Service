@@ -2,7 +2,7 @@
 import os
 import requests
 from datetime import datetime, timedelta
-from collectors import save_csv
+from .utils import save_csv
 
 KEYWORDS = [
     # ── 핵심 키워드
