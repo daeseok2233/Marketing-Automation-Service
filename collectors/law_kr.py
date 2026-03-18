@@ -12,18 +12,17 @@ import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
+from config import CACHE_DIR
 
 LAW_BASE = "http://www.law.go.kr/DRF/lawService.do"
 TRADEMARK_LAW_MST = "279819"  # 상표법 법령일련번호
 
-CACHE_DIR = Path("data/legal_cache")
 CACHE_DAYS = 30  # 월 1회 업데이트
 
 
 class LawKrCollector:
     def __init__(self):
         self.oc = os.environ.get("LAW_OC", "")
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     def get_articles(self) -> list:
         """상표법 조문 반환 (30일 캐시)"""
