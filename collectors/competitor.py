@@ -7,6 +7,7 @@ import os
 import re
 import requests
 from .utils import save_csv
+from config import DOWNLOAD_DIR
 
 # ── 쿼리 확장: 핵심 + 롱테일 + 업종별 + 질문형
 QUERIES = [
@@ -72,7 +73,7 @@ class CompetitorCollector:
                 print(f"  경쟁사 수집 경고 ({query}): {e}")
 
         # CSV 저장: 블로그 목록
-        csv_path = save_csv("competitor", all_items)
+        csv_path = save_csv(DOWNLOAD_DIR,"competitor", all_items)
         print(f"  [Competitor] {len(all_items)}개 블로그 수집, CSV 저장: {csv_path}")
 
         return {"sample_titles": all_items}

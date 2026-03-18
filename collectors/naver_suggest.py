@@ -7,6 +7,7 @@
 import re
 import requests
 from .utils import save_csv
+from config import DOWNLOAD_DIR
 
 # ── 시드 키워드: 자동완성을 펼칠 기본 키워드
 SEED_KEYWORDS = [
@@ -62,7 +63,7 @@ class NaverSuggestCollector:
                         })
 
         # CSV 저장
-        csv_path = save_csv("naver_suggest", all_suggestions)
+        csv_path = save_csv(DOWNLOAD_DIR, "naver_suggest", all_suggestions)
         print(f"  [Naver Suggest] {len(all_suggestions)}개 키워드 수집, CSV 저장: {csv_path}")
 
         # 질문형 키워드만 분리

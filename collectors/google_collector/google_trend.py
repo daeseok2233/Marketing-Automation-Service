@@ -7,6 +7,7 @@ import requests
 import xml.etree.ElementTree as ET
 from logger import get_logger
 from collectors.utils import save_csv
+from .google_config import GOOGLE_DIR
 
 logger = get_logger(__name__) # Added logger instance
 
@@ -61,7 +62,7 @@ class GoogleTrendCollector: # Renamed class
             }
             rows.append(row)
 
-        csv_path = save_csv("google_trend", rows) # Updated collector name
+        csv_path = save_csv(GOOGLE_DIR,"google_trend", rows) # Updated collector name
         logger.info(f"  [Google Trend] {len(trends)}개 인기 검색어 수집, CSV 저장: {csv_path}") # Replaced print with logger.info
 
         return {"trends": trends}

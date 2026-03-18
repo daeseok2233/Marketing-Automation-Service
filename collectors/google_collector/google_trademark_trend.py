@@ -4,6 +4,7 @@ import time
 from pytrends.request import TrendReq
 from logger import get_logger
 from collectors.utils import save_csv
+from .google_config import GOOGLE_DIR
 
 logger = get_logger(__name__) # Added logger instance
 
@@ -54,7 +55,7 @@ class GoogleTrademarkTrendCollector: # Renamed class
             {"keyword": kw, "avg": v["avg"], "growth": v["growth"]}
             for kw, v in results.items()
         ]
-        csv_path = save_csv("google_trademark_trend", rows) # Updated collector name
+        csv_path = save_csv(GOOGLE_DIR,"google_trademark_trend", rows) # Updated collector name
         logger.info(f"  [Google Trademark Trend] CSV 저장: {csv_path}") # Replaced print with logger.info
 
         return results

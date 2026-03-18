@@ -3,6 +3,7 @@ import os
 import requests
 from datetime import datetime, timedelta
 from .utils import save_csv
+from config import DOWNLOAD_DIR
 
 KEYWORDS = [
     # ── 핵심 키워드
@@ -69,7 +70,7 @@ class NaverDataLabCollector:
             {"keyword": name, "avg_ratio": v["avg_ratio"], "growth_rate": v["growth_rate"]}
             for name, v in results.items()
         ]
-        csv_path = save_csv("naver_datalab", rows)
+        csv_path = save_csv(DOWNLOAD_DIR, "naver_datalab", rows)
         print(f"  [Naver DataLab] {len(results)}개 키워드 수집, CSV 저장: {csv_path}")
 
         return results

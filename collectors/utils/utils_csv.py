@@ -1,9 +1,8 @@
 # collectors 패키지
 import csv
 from datetime import datetime
-from config import DOWNLOAD_DIR
 
-def save_csv(collector_name: str, rows: list[dict], date_str: str | None = None):
+def save_csv(download_dir,collector_name: str, rows: list[dict], date_str: str | None = None):
     """수집 결과를 CSV로 저장하고 경로를 반환한다.
 
     Args:
@@ -16,7 +15,7 @@ def save_csv(collector_name: str, rows: list[dict], date_str: str | None = None)
     """
     if date_str is None:
         date_str = datetime.now().strftime("%Y%m%d")
-    path = DOWNLOAD_DIR / f"{date_str}_{collector_name}.csv"
+    path = download_dir / f"{date_str}_{collector_name}.csv"
 
     if not rows:
         path.write_text("", encoding="utf-8")

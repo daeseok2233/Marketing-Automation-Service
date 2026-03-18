@@ -8,6 +8,7 @@ import re
 import requests
 import xml.etree.ElementTree as ET
 from .utils import save_csv
+from config import DOWNLOAD_DIR
 
 # ── 네이버 뉴스 API 쿼리: 상표/IP에 특화된 키워드
 NAVER_QUERIES = [
@@ -54,7 +55,7 @@ class NaverNewsCollector:
         print(f"  [Google News RSS] {len(google_results)}개 수집")
 
         # CSV 저장
-        csv_path = save_csv("naver_news", headlines)
+        csv_path = save_csv(DOWNLOAD_DIR, "naver_news", headlines)
         print(f"  [News] 총 {len(headlines)}개 헤드라인, CSV 저장: {csv_path}")
 
         return {"headlines": headlines}
