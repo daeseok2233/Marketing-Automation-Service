@@ -6,7 +6,7 @@
 import os
 import re
 import requests
-from .utils import save_csv
+from collectors.utils import save_csv
 from config import DOWNLOAD_DIR
 
 # ── 쿼리 확장: 핵심 + 롱테일 + 업종별 + 질문형

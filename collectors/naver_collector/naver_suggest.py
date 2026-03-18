@@ -6,7 +6,7 @@
 """
 import re
 import requests
-from .utils import save_csv
+from collectors.utils import save_csv
 from config import DOWNLOAD_DIR
 
 # ── 시드 키워드: 자동완성을 펼칠 기본 키워드

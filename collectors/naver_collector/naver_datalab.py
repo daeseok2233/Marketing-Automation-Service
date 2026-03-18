@@ -2,7 +2,7 @@
 import os
 import requests
 from datetime import datetime, timedelta
-from .utils import save_csv
+from collectors.utils import save_csv
 from config import DOWNLOAD_DIR
 
 KEYWORDS = [
