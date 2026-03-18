@@ -5,13 +5,16 @@ Google Trends RSS에서 한국 실시간 인기 검색어 + 관련 뉴스 제목
 """
 import requests
 import xml.etree.ElementTree as ET
-from .utils import save_csv
+from logger import get_logger
+from collectors.utils import save_csv
+
+logger = get_logger(__name__) # Added logger instance
 
 TRENDING_RSS = "https://trends.google.com/trending/rss?geo=KR"
 NS = {"ht": "https://trends.google.com/trending/rss"}
 
 
-class GoogleTrendingCollector:
+class GoogleTrendCollector: # Renamed class
     HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; blog-pipeline/1.0)"}
 
     def collect(self) -> dict:
@@ -20,7 +23,7 @@ class GoogleTrendingCollector:
             r.raise_for_status()
             root = ET.fromstring(r.content)
         except Exception as e:
-            print(f"  [Google Trending] RSS 수집 실패: {e}")
+            logger.error(f"  [Google Trend] RSS 수집 실패: {e}") # Replaced print with logger.error
             return {"trends": []}
 
         trends = []
@@ -58,7 +61,7 @@ class GoogleTrendingCollector:
             }
             rows.append(row)
 
-        csv_path = save_csv("google_trending", rows)
-        print(f"  [Google Trending] {len(trends)}개 인기 검색어 수집, CSV 저장: {csv_path}")
+        csv_path = save_csv("google_trend", rows) # Updated collector name
+        logger.info(f"  [Google Trend] {len(trends)}개 인기 검색어 수집, CSV 저장: {csv_path}") # Replaced print with logger.info
 
         return {"trends": trends}

@@ -1,7 +1,10 @@
 """Google Trends — pytrends (429 시 조용히 스킵)"""
 import time
 from pytrends.request import TrendReq
-from .utils import save_csv
+from logger import get_logger # Added logger import
+from collectors.utils import save_csv # Updated import path for save_csv
+
+logger = get_logger(__name__) # Added logger instance
 
 TREND_KEYWORDS = [
     # ── 핵심 키워드
@@ -20,7 +23,7 @@ TREND_KEYWORDS = [
 ]
 
 
-class GoogleTrendsCollector:
+class GoogleTrademarkTrendCollector: # Renamed class
     def collect(self) -> dict:
         pt = TrendReq(hl="ko", tz=540, timeout=(10, 30))
         results = {}
@@ -42,16 +45,15 @@ class GoogleTrendsCollector:
             except Exception as e:
                 err = str(e)
                 if "429" in err or "response with code 429" in err:
-                    # Google IP 차단 — 정상적인 상황, 경고 불필요
-                    pass
+                    logger.debug(f"  [Google Trademark Trend] Google IP 차단 (429): {err}") # Replaced print with logger.debug
                 else:
-                    print(f"  Google Trends 경고 ({group}): {e}")
+                    logger.error(f"  [Google Trademark Trend] 경고 ({group}): {e}") # Replaced print with logger.error
         # CSV 저장
         rows = [
             {"keyword": kw, "avg": v["avg"], "growth": v["growth"]}
             for kw, v in results.items()
         ]
-        csv_path = save_csv("google_trends", rows)
-        print(f"  [Google Trends] CSV 저장: {csv_path}")
+        csv_path = save_csv("google_trademark_trend", rows) # Updated collector name
+        logger.info(f"  [Google Trademark Trend] CSV 저장: {csv_path}") # Replaced print with logger.info
 
         return results
