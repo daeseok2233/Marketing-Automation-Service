@@ -28,7 +28,10 @@ env/
 Thumbs.db
 
 # 업로드 불가 데이터
-data/logs/
+data/log/
 data/images/
 data/download/
 data/cache/
+
+# 테스트 파일 저장 방지
+*test*

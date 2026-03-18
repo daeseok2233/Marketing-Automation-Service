@@ -1,0 +1,4 @@
+from config import DOWNLOAD_DIR
+
+BIGKINDS_DIR = DOWNLOAD_DIR / "bigkinds"
+DOWNLOAD_CYCLE_DAYS = 7

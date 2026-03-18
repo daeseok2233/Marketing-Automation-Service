@@ -5,11 +5,11 @@
 이후 실행에서는 저장된 쿠키 재사용.
 """
 import os, time, json
-from config import DOWNLOAD_DIR, CACHE_DIR
+from config import CACHE_DIR
+from .bigkinds_config import BIGKINDS_DIR
 from pathlib import Path
 from datetime import datetime, timedelta
 
-BIGKINDS_DIR = DOWNLOAD_DIR/"bigkinds"
 COOKIE_FILE    = CACHE_DIR / ".cookies.json"
 BIGKINDS_URL   = "https://www.bigkinds.or.kr"
 SEARCH_KEYWORD = "상표"
