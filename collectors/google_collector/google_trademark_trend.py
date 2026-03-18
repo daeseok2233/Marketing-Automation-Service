@@ -1,8 +1,9 @@
-"""Google Trends — pytrends (429 시 조용히 스킵)"""
+"""Google Trends — pytrends (429 시 조용히 스킵)
+이거 어디쓰는거에요??? 일단 수집안하게 빼놓음"""
 import time
 from pytrends.request import TrendReq
-from logger import get_logger # Added logger import
-from collectors.utils import save_csv # Updated import path for save_csv
+from logger import get_logger
+from collectors.utils import save_csv
 
 logger = get_logger(__name__) # Added logger instance
 

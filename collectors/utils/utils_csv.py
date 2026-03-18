@@ -3,7 +3,7 @@ import csv
 from datetime import datetime
 from config import DOWNLOAD_DIR
 
-def save_csv(collector_name: str, rows: list[dict], date_str: str | None = None) -> Path:
+def save_csv(collector_name: str, rows: list[dict], date_str: str | None = None):
     """수집 결과를 CSV로 저장하고 경로를 반환한다.
 
     Args:

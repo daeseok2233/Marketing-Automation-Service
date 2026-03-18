@@ -31,6 +31,8 @@ collector : 파일 수집기
 
 collector/bigkinds_collector : 빅카인즈 파일 수집기
 
+collector/google_collector : 구글 검색어 트렌드 파일 수집기
+
 ---
 
 logger : 로그 생성기(이전 코드에서 가져옴)
