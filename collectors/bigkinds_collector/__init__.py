@@ -1,1 +1,1 @@
-from .bigkinds import BigKindsCollector
+from .bigkinds_main import BigKindsCollector

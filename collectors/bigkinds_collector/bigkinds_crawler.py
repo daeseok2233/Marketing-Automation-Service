@@ -9,6 +9,9 @@ from config import CACHE_DIR
 from .bigkinds_config import BIGKINDS_DIR
 from pathlib import Path
 from datetime import datetime, timedelta
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 COOKIE_FILE    = CACHE_DIR / ".cookies.json"
 BIGKINDS_URL   = "https://www.bigkinds.or.kr"
@@ -20,10 +23,10 @@ def _auto_login(page) -> bool:
     user_id = os.environ.get("BIGKINDS_ID", "")
     user_pw = os.environ.get("BIGKINDS_PW", "")
     if not user_id or not user_pw:
-        print("  [BigKinds] BIGKINDS_ID / BIGKINDS_PW 미설정 — .env 파일 확인")
+        logger.warning("  [BigKinds] BIGKINDS_ID / BIGKINDS_PW 미설정 — .env 파일 확인")
         return False
 
-    print(f"  [BigKinds] 자동 로그인 시도: {user_id}")
+    logger.info(f"  [BigKinds] 자동 로그인 시도: {user_id}")
     try:
         # 1) MEMBERSHIP 메뉴 클릭 → 2) 로그인 서브메뉴 클릭 → 모달 오픈
         try:
@@ -71,23 +74,22 @@ def _auto_login(page) -> bool:
 
         # 로그인 성공 확인
         if _is_logged_in(page):
-            print("  [BigKinds] 로그인 성공")
+            logger.info("  [BigKinds] 로그인 성공")
             return True
 
-        print("  [BigKinds] 로그인 실패 — ID/PW 확인 필요")
+        logger.warning("  [BigKinds] 로그인 실패 — ID/PW 확인 필요")
         return False
 
     except Exception as e:
-        print(f"  [BigKinds] 로그인 오류: {e}")
+        logger.error(f"  [BigKinds] 로그인 오류: {e}")
         return False
 
 
 def _save_cookies(context):
     """현재 브라우저 컨텍스트의 쿠키를 파일로 저장"""
-    BIGKINDS_DIR.mkdir(parents=True, exist_ok=True)
     cookies = context.cookies()
     COOKIE_FILE.write_text(json.dumps(cookies, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"  [BigKinds] 쿠키 저장 ({len(cookies)}개)")
+    logger.info(f"  [BigKinds] 쿠키 저장 ({len(cookies)}개)")
 
 
 def _is_logged_in(page) -> bool:
@@ -109,10 +111,8 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
     try:
         from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
     except ImportError:
-        print("  [BigKinds] playwright 미설치")
+        logger.warning("  [BigKinds] playwright 미설치")
         return None
-
-    BIGKINDS_DIR.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=headless)
@@ -123,7 +123,7 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
             try:
                 cookies = json.loads(COOKIE_FILE.read_text(encoding="utf-8"))
                 context.add_cookies(cookies)
-                print("  [BigKinds] 쿠키 로드")
+                logger.info("  [BigKinds] 쿠키 로드")
             except Exception:
                 pass
 
@@ -131,13 +131,13 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
 
         try:
             # ── 1. 메인 페이지 이동
-            print("  [BigKinds] 접속 중...")
+            logger.info("  [BigKinds] 접속 중...")
             page.goto(BIGKINDS_URL, timeout=30000)
             page.wait_for_load_state("networkidle", timeout=20000)
 
             # ── 2. 로그인 상태 확인 → 미로그인이면 자동 로그인
             if not _is_logged_in(page):
-                print("  [BigKinds] 로그인 필요")
+                logger.info("  [BigKinds] 로그인 필요")
                 if not _auto_login(page):
                     browser.close()
                     return None
@@ -146,10 +146,10 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
                 page.goto(BIGKINDS_URL, timeout=30000)
                 page.wait_for_load_state("networkidle", timeout=20000)
             else:
-                print("  [BigKinds] 로그인 상태 확인")
+                logger.info("  [BigKinds] 로그인 상태 확인")
 
             # ── 3. 키워드 검색
-            print(f"  [BigKinds] '{SEARCH_KEYWORD}' 검색 중...")
+            logger.info(f"  [BigKinds] '{SEARCH_KEYWORD}' 검색 중...")
             search_box = page.locator(
                 "#searchKeyword, #srchText, input[placeholder*='검색어'], input[name*='query']"
             ).first
@@ -163,7 +163,7 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
             date_from = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
             try:
                 page.locator("#startDate, input[id*='start']").first.fill(date_from)
-                page.locator("#endDate,   input[id*='end']").first.fill(date_to)
+                page.locator("#endDate,   input[id='end']").first.fill(date_to)
                 page.click("button:has-text('검색'), #searchBtn")
                 page.wait_for_load_state("networkidle", timeout=15000)
                 time.sleep(2)
@@ -171,7 +171,7 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
                 pass
 
             # ── 5. STEP 03 분석 결과 및 시각화 클릭
-            print("  [BigKinds] STEP 03 클릭 중...")
+            logger.info("  [BigKinds] STEP 03 클릭 중...")
             step03_clicked = False
             for selector in [
                 "text=분석 결과 및 시각화",
@@ -188,7 +188,7 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
                         el.scroll_into_view_if_needed()
                         el.click(timeout=5000)
                         step03_clicked = True
-                        print(f"  [BigKinds] STEP 03 클릭 성공: {selector}")
+                        logger.info(f"  [BigKinds] STEP 03 클릭 성공: {selector}")
                         break
                 except Exception:
                     continue
@@ -199,13 +199,13 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
                     const el = els.find(e => e.innerText && e.innerText.includes('분석 결과 및 시각화'));
                     if (el) el.click();
                 """)
-                print("  [BigKinds] STEP 03 JS 클릭 시도")
+                logger.info("  [BigKinds] STEP 03 JS 클릭 시도")
 
             page.wait_for_load_state("networkidle", timeout=15000)
             time.sleep(3)
 
             # ── 6. 엑셀 다운로드
-            print("  [BigKinds] 엑셀 다운로드 중...")
+            logger.info("  [BigKinds] 엑셀 다운로드 중...")
             with page.expect_download(timeout=60000) as dl_info:
                 page.click(
                     "button:has-text('엑셀다운로드'), a:has-text('엑셀다운로드'), "
@@ -216,20 +216,20 @@ def download_bigkinds_xlsx(headless: bool = True) -> Path | None:
             date_str  = datetime.now().strftime("%Y%m%d")
             save_path = BIGKINDS_DIR / f"bigkinds_{date_str}.xlsx"
             download.save_as(save_path)
-            print(f"  [BigKinds] 저장 완료: {save_path}")
+            logger.info(f"  [BigKinds] 저장 완료: {save_path}")
 
             # 다운로드 성공 시 쿠키 갱신
             _save_cookies(context)
             return save_path
 
         except PWTimeout as e:
-            print(f"  [BigKinds] 타임아웃: {e}")
+            logger.error(f"  [BigKinds] 타임아웃: {e}")
         except Exception as e:
-            print(f"  [BigKinds] 오류: {e}")
+            logger.error(f"  [BigKinds] 오류: {e}")
             try:
                 ss = BIGKINDS_DIR / f"debug_{datetime.now().strftime('%H%M%S')}.png"
                 page.screenshot(path=str(ss))
-                print(f"  [BigKinds] 스크린샷: {ss}")
+                logger.info(f"  [BigKinds] 스크린샷: {ss}")
             except Exception:
                 pass
         finally:
@@ -243,4 +243,4 @@ if __name__ == "__main__":
     load_dotenv()
 
     result = download_bigkinds_xlsx(headless=False)
-    print(f"결과: {result}")
+    logger.info(f"결과: {result}")
