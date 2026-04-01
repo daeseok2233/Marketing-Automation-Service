@@ -1,7 +1,6 @@
 """LLM 호출 모듈 — Gemini 무료 모델 순차 사용, 소진 시 Ollama 폴백."""
 
 import os
-import json
 import requests
 from dotenv import load_dotenv
 

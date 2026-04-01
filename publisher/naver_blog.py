@@ -1,25 +1,27 @@
 """네이버 블로그 자동 발행 — 브라우저 세션 유지 방식."""
 
 import os
-import re
 import json
 import time
 import random
 from pathlib import Path
-from playwright.sync_api import sync_playwright, Playwright
+from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# 블로그별 계정 정보
-BLOG_CREDENTIALS = {
-    "blog_02": {"naver_id": "***REMOVED***", "naver_pw": "***REMOVED***"},
-    "blog_03": {"naver_id": "***REMOVED***", "naver_pw": "***REMOVED***"},
-    "blog_04": {"naver_id": "***REMOVED***", "naver_pw": "***REMOVED***"},
-    "blog_05": {"naver_id": "***REMOVED***", "naver_pw": "***REMOVED***"},
-    "blog_06": {"naver_id": "***REMOVED***", "naver_pw": "***REMOVED***"},
-    "blog_07": {"naver_id": "***REMOVED***", "naver_pw": "***REMOVED***"},
-}
+# 블로그별 계정 정보 (.env에서 로드)
+def _load_blog_credentials() -> dict:
+    creds = {}
+    for i in range(2, 8):
+        bid = f"blog_{i:02d}"
+        nid = os.environ.get(f"NAVER_BLOG_{i:02d}_ID", "")
+        npw = os.environ.get(f"NAVER_BLOG_{i:02d}_PW", "")
+        if nid:
+            creds[bid] = {"naver_id": nid, "naver_pw": npw}
+    return creds
+
+BLOG_CREDENTIALS = _load_blog_credentials()
 
 # persistent context용 프로필 디렉토리
 PROFILE_BASE = Path("data/browser_profiles")
@@ -105,27 +107,11 @@ def _random_delay(min_sec=0.5, max_sec=1.5):
     time.sleep(random.uniform(min_sec, max_sec))
 
 
-def _type_like_human(page, selector, text):
-    """사람처럼 한 글자씩 타이핑."""
-    page.click(selector)
-    for char in text:
-        page.keyboard.type(char, delay=random.randint(30, 80))
-        if random.random() < 0.1:
-            time.sleep(random.uniform(0.1, 0.3))
-
-
 def _cookie_path(cookie_blog_id: str) -> Path:
     """블로그별 쿠키 파일 경로."""
     if cookie_blog_id:
         return Path(f"data/naver_blog_cookies_{cookie_blog_id}.json")
     return Path("data/naver_blog_cookies.json")
-
-
-def _profile_dir(cookie_blog_id: str) -> Path:
-    """블로그별 persistent context 프로필 디렉토리."""
-    d = PROFILE_BASE / (cookie_blog_id or "default")
-    d.mkdir(parents=True, exist_ok=True)
-    return d
 
 
 def _save_cookies(context, cookie_blog_id: str = ""):
@@ -134,18 +120,6 @@ def _save_cookies(context, cookie_blog_id: str = ""):
     path = _cookie_path(cookie_blog_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(cookies, ensure_ascii=False), encoding="utf-8")
-
-
-def _migrate_cookies_to_profile(context, cookie_blog_id: str = ""):
-    """기존 JSON 쿠키를 persistent context로 마이그레이션."""
-    path = _cookie_path(cookie_blog_id)
-    if path.exists():
-        try:
-            cookies = json.loads(path.read_text(encoding="utf-8"))
-            context.add_cookies(cookies)
-            print(f"  [Naver] 기존 쿠키 마이그레이션: {path.name}")
-        except Exception:
-            pass
 
 
 def _get_credentials(cookie_blog_id: str) -> tuple:
@@ -400,70 +374,6 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
         return ""
 
 
-def _insert_divider(page, style: int = 1):
-    """네이버 에디터에 구분선 삽입. style: 1~8"""
-    try:
-        # 구분선 추가 버튼 (기본 스타일로 바로 삽입)
-        add_btn = page.locator("button:has-text('구분선 추가')").first
-        if add_btn and add_btn.is_visible():
-            add_btn.click()
-            _random_delay(1, 2)
-            # 구분선 삽입 후 아래로 이동
-            page.keyboard.press("ArrowDown")
-            _random_delay(0.3, 0.5)
-    except Exception as e:
-        print(f"  [Naver] 구분선 삽입 실패: {e}")
-
-
-def _insert_quote(page, style: int = 3, text: str = ""):
-    """네이버 에디터에 인용구 삽입. style: 1~6"""
-    try:
-        # 1. 인용구 선택 드롭다운 열기
-        dropdown = page.query_selector(".se-insert-quotation-default-select-button, button:has-text('인용구 선택')")
-        if dropdown and dropdown.is_visible():
-            dropdown.click()
-            _random_delay(0.5, 1)
-        else:
-            # 인용구 추가 버튼 (기본 스타일로 바로 삽입)
-            add_btn = page.locator("button:has-text('인용구 추가')").first
-            if add_btn:
-                add_btn.click()
-                _random_delay(0.5, 1)
-
-        # 2. 스타일 선택 — 서브패널에서 인용구N 클릭
-        style_btns = page.query_selector_all(".se-insert-menu-sub-panel-button")
-        selected = False
-        for btn in style_btns:
-            if btn.is_visible():
-                btn_text = btn.inner_text().strip()
-                if f"인용구{style}" in btn_text:
-                    btn.click()
-                    selected = True
-                    break
-
-        if not selected:
-            # 스타일 못 찾으면 기본 인용구 추가 버튼 클릭
-            add_btn = page.locator("button:has-text('인용구 추가')").first
-            if add_btn:
-                add_btn.click()
-        _random_delay(0.5, 1)
-
-        # 3. 인용구 안에 텍스트 입력
-        if text:
-            page.keyboard.type(text, delay=random.randint(3, 10))
-            _random_delay(0.3, 0.5)
-
-        # 4. 인용구 밖으로 나가기 — 아래 화살표 + Enter
-        page.keyboard.press("ArrowDown")
-        _random_delay(0.2, 0.3)
-        page.keyboard.press("ArrowDown")
-        _random_delay(0.2, 0.3)
-        page.keyboard.press("Enter")
-        _random_delay(0.3, 0.5)
-    except Exception as e:
-        print(f"  [Naver] 인용구 삽입 실패: {e}")
-
-
 def _change_font_size(page, size: int):
     """네이버 에디터 글자 크기 변경. size: 11,13,15,16,19,24,28,30,34,38"""
     try:
@@ -536,27 +446,3 @@ def _add_link_to_image(page, url: str):
         print(f"  [Naver] 링크 걸기 실패: {e}")
 
 
-def _clean_line(line: str) -> str:
-    """한 줄의 마크다운을 순수 텍스트로 변환."""
-    stripped = line.strip()
-
-    # ## H2 → 텍스트만
-    if stripped.startswith("## "):
-        return stripped[3:].strip("* ")
-
-    # ### H3 → 텍스트만
-    if stripped.startswith("### "):
-        return stripped[4:].strip("* ")
-
-    # # H1 → 텍스트만
-    if stripped.startswith("# ") and not stripped.startswith("## "):
-        return stripped[2:].strip("* ")
-
-    # **bold** → 텍스트만
-    cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", stripped)
-
-    # --- 구분선 → 빈 줄
-    if cleaned == "---":
-        return ""
-
-    return cleaned
