@@ -21,9 +21,7 @@ QUERIES = [
     # 해외
     "해외 상표 등록 방법", "마드리드 의정서 상표",
     # 비교형 (compare 템플릿용)
-    "상표 출원 셀프 vs 변리사", "상표 직접출원 대행 비교",
-]
-
+    "상표 출원 셀프 vs 변리사", "상표 직접출원 대행 비교",]
 
 class CompetitorCollector:
     BLOG_API = "https://openapi.naver.com/v1/search/blog.json"

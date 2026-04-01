@@ -34,3 +34,47 @@ def save_csv(collector_name: str, rows: list[dict], date_str: str | None = None)
         writer.writerows(rows)
 
     return path
+
+
+def collect_all() -> dict:
+    """모든 수집기를 순차 실행하고 결과를 반환한다."""
+    from collectors.naver_suggest import NaverSuggestCollector
+    from collectors.google_trends import GoogleTrendsCollector
+    from collectors.google_trending import GoogleTrendingCollector
+    from collectors.naver_datalab import NaverDataLabCollector
+    from collectors.naver_news import NaverNewsCollector
+    from collectors.competitor import CompetitorCollector
+    from collectors.bigkinds import BigKindsCollector
+    from collectors.kipris import KIPRISCollector
+
+    collectors = {
+        "suggest": NaverSuggestCollector(),
+        "google_trends": GoogleTrendsCollector(),
+        "google_trending": GoogleTrendingCollector(),
+        "naver_datalab": NaverDataLabCollector(),
+        "naver_news": NaverNewsCollector(),
+        "competitor": CompetitorCollector(),
+        "bigkinds": BigKindsCollector(),
+        "kipris": KIPRISCollector(),
+    }
+
+    results = {}
+    for name, col in collectors.items():
+        print(f"\n===== {name} =====")
+        try:
+            result = col.collect()
+            results[name] = result
+            if isinstance(result, dict):
+                for k, v in result.items():
+                    if isinstance(v, list):
+                        print(f"  {k}: {len(v)}건")
+                    elif isinstance(v, dict):
+                        print(f"  {k}: {len(v)}개 항목")
+                    else:
+                        print(f"  {k}: {v}")
+            print("  [OK]")
+        except Exception as e:
+            print(f"  [FAIL] {e}")
+            results[name] = {"error": str(e)}
+
+    return results
