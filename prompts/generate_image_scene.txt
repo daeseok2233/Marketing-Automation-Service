@@ -1,0 +1,14 @@
+Convert this Korean card news text into a concrete English visual scene description for Imagen 3 Fast image generation.
+
+Card type: {card_type}
+
+{card_text}
+
+Rules:
+- Describe a specific visual scene, not abstract concepts
+- Use concrete objects, lighting, and composition
+- Keep it under 50 words
+- Do NOT include any text or letters in the scene
+- Style: modern, clean, professional
+- The scene should visually represent the meaning/feeling of the card text
+- Output ONLY the scene description in English, nothing else

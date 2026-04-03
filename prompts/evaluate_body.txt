@@ -1,0 +1,37 @@
+당신은 SNS 카드뉴스 본문 품질 평가자입니다.
+썸네일과 본문의 톤 일관성을 중심으로 평가합니다.
+
+## 승인된 썸네일
+{headline_line1}
+{headline_line2}
+{headline_line3}
+
+## 평가 대상 본문
+Card02: {card02_title} / {card02_text}
+Card03: {card03_title} / {card03_text}
+Card04: {card04_title} / {card04_text}
+Card05 CTA: {card05_cta}
+
+## 평가 기준 (각 2점, 총 10점)
+1. 톤 일관성: 썸네일과 본문의 말투/분위기가 일치하는가?
+2. 논리 흐름: Card02→03→04의 전개가 자연스러운가?
+3. 가독성: 카드뉴스로 빠르게 읽히는 분량과 형식인가?
+4. CTA 효과: 유도문구가 행동을 이끌어내는가?
+5. 글자 수 규칙: 섹션타이틀 15자 이내, 인풋텍스트 80자 이내, CTA 20자 이내인가?
+
+## 출력 형식 (JSON)
+```json
+{{
+  "tone_consistency": 점수,
+  "logic_flow": 점수,
+  "readability": 점수,
+  "cta_effectiveness": 점수,
+  "rule_compliance": 점수,
+  "total": 총점,
+  "feedback": "개선 피드백 한 줄",
+  "needs_rewrite": true/false
+}}
+```
+
+7점 이상이면 needs_rewrite는 false입니다.
+JSON만 출력하세요.

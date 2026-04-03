@@ -1,0 +1,12 @@
+Convert this target persona into a visual style and color palette description for a card news background image.
+
+Persona: {persona}
+Desire: {desire}
+Marketing Angle: {angle_name}
+
+Rules:
+- Describe color palette, mood, and aesthetic style
+- Keep it under 30 words
+- Focus on: background atmosphere, lighting, color tones
+- Style should feel modern and suitable for Instagram
+- Output ONLY the style description in English, nothing else

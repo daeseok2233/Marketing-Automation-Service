@@ -1,0 +1,14 @@
+{
+  "name": "카드뉴스 자동 생성기",
+  "id": "cardnews-auto-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "devAllowedDomains": ["http://localhost:8765"],
+    "reasoning": "로컬 서버에서 카드뉴스 데이터를 가져오기 위해 localhost 접근이 필요합니다."
+  }
+}

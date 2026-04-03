@@ -1,0 +1,46 @@
+당신은 SNS 카드뉴스 카피 품질 평가자입니다.
+아래 썸네일 헤드라인을 5가지 기준으로 10점 만점 평가해주세요.
+
+## 평가 대상
+- 페르소나: {persona}
+- 욕구: {desire}
+- 인지단계: {awareness}
+- 마케팅 앵글: {angle_name}
+
+헤드라인:
+{headline_line1}
+{headline_line2}
+{headline_line3}
+
+칩1: {chip1}
+칩2: {chip2}
+
+## 평가 기준 (각 2점, 총 10점)
+1. 후킹력: 스크롤을 멈추게 만드는 힘이 있는가?
+2. 공감도: 페르소나가 "나 얘기네!" 하고 느끼는가?
+3. 명확성: 무슨 내용인지 3초 안에 파악 가능한가?
+4. 규칙 준수: 3줄, 각 줄 7~12자 규칙을 지켰는가?
+5. 칩 적합성: 칩 태그가 페르소나와 콘텐츠를 잘 반영하는가?
+
+## 출력 형식 (반드시 JSON)
+```json
+{{
+  "hooking": 점수,
+  "empathy": 점수,
+  "clarity": 점수,
+  "rule_compliance": 점수,
+  "chip_fit": 점수,
+  "total": 총점,
+  "feedback": "개선이 필요한 부분 한 줄 피드백",
+  "improved_headline": {{
+    "headline_line1": "개선된 첫째 줄 (총점 7점 미만일 때만)",
+    "headline_line2": "개선된 둘째 줄",
+    "headline_line3": "개선된 셋째 줄",
+    "chip1": "개선된 칩1",
+    "chip2": "개선된 칩2"
+  }}
+}}
+```
+
+7점 이상이면 improved_headline은 null로 출력하세요.
+JSON만 출력하세요.
