@@ -284,12 +284,7 @@ def run_forever():
             except Exception:
                 pass
 
-        # 하루 끝 — 브라우저 세션 정리
-        try:
-            from publisher.naver_blog import close_all_sessions
-            close_all_sessions()
-        except Exception:
-            pass
+        # 브라우저 세션 유지 — 닫으면 쿠키 만료되므로 닫지 않음
 
         # 다음 날 00:00까지 대기
         now = datetime.now()

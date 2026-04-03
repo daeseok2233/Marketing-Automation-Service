@@ -122,15 +122,6 @@ def _save_cookies(context, cookie_blog_id: str = ""):
     path.write_text(json.dumps(cookies, ensure_ascii=False), encoding="utf-8")
 
 
-def _get_credentials(cookie_blog_id: str) -> tuple:
-    """블로그별 ID/PW 가져오기."""
-    if cookie_blog_id in BLOG_CREDENTIALS:
-        cred = BLOG_CREDENTIALS[cookie_blog_id]
-        return cred["naver_id"], cred["naver_pw"]
-    # 폴백: .env
-    return os.environ.get("NAVER_BLOG_ID", ""), os.environ.get("NAVER_BLOG_PW", "")
-
-
 def _check_login(page, blog_url: str = "") -> bool:
     """현재 페이지에서 로그인 상태 확인. postwrite 접속 시도."""
     if blog_url:
@@ -164,7 +155,7 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
     body = blog_data.get("body", "")
 
     # 마크다운 → 명령 리스트 변환
-    from publisher.blog_formatter import markdown_to_commands, print_commands
+    from publisher.blog_formatter import markdown_to_commands
     commands = markdown_to_commands(body, template_name=template_name)
     print(f"  [Format] {len(commands)}개 명령 생성")
 
@@ -270,6 +261,18 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
                             page.click(".se-image-toolbar-button")
                         fc_info.value.set_files(abs_path)
                         _random_delay(3, 5)
+
+                        # 파일 전송 오류 팝업 처리
+                        try:
+                            err_popup = page.locator("button:has-text('확인')").first
+                            if err_popup.is_visible(timeout=1000):
+                                err_popup.click()
+                                _random_delay(0.5, 1)
+                                print(f"  [Naver] 이미지 전송 오류 — 스킵: {Path(cmd['path']).name}")
+                                continue
+                        except Exception:
+                            pass
+
                         image_count += 1
                         print(f"  [Naver] 이미지 {image_count}: {Path(cmd['path']).name}")
 
@@ -393,20 +396,6 @@ def _change_font_size(page, size: int):
                 page.keyboard.press("Escape")
     except Exception as e:
         print(f"  [Naver] 글자 크기 변경 실패: {e}")
-
-
-def _get_image_link(img_path: str) -> str:
-    """image_list.csv에서 이미지 파일명에 매칭되는 링크 URL을 반환."""
-    import csv
-    csv_path = Path("data/image/image_list.csv")
-    if not csv_path.exists():
-        return ""
-    filename = Path(img_path).name
-    with open(csv_path, encoding="utf-8-sig") as f:
-        for row in csv.DictReader(f):
-            if row.get("이미지이름", "") == filename:
-                return row.get("링크주소", "").strip()
-    return ""
 
 
 def _add_link_to_image(page, url: str):

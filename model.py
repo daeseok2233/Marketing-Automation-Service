@@ -1,4 +1,4 @@
-"""LLM 호출 모듈 — Gemini 무료 모델 순차 사용, 소진 시 Ollama 폴백."""
+"""LLM 호출 모듈 — Gemini API (GCP 크레딧) → Ollama 폴백."""
 
 import os
 import requests
@@ -6,13 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── Gemini 설정 ──────────────────────────────────────────
+# ── Gemini 설정 (GCP 프로젝트 API 키 → $300 크레딧 차감) ──
 GEMINI_MODELS = [
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
-    "gemini-2.5-pro",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
+    "gemini-2.0-flash-001",
+    "gemini-1.5-flash",
 ]
 
 _keys_raw = os.environ.get("GEMINI_API_KEYS", "") or os.environ.get("GEMINI_API_KEY", "")
@@ -24,7 +23,7 @@ OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:14b")
 
 
 def _call_gemini(prompt: str, system: str = "", model: str = "", api_key: str = "", max_tokens: int = 8192) -> str | None:
-    """Gemini API 단일 호출. 성공 시 텍스트, 실패 시 None."""
+    """Gemini API 호출 (GCP 크레딧 차감)."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     headers = {"Content-Type": "application/json"}
     params = {"key": api_key}
@@ -63,7 +62,7 @@ def _call_gemini(prompt: str, system: str = "", model: str = "", api_key: str = 
 
 
 def _call_ollama(prompt: str, system: str = "") -> str | None:
-    """Ollama 로컬 모델 호출. 성공 시 텍스트, 실패 시 None."""
+    """Ollama 로컬 모델 호출."""
     url = f"{OLLAMA_URL}/api/generate"
     body = {
         "model": OLLAMA_MODEL,
@@ -93,16 +92,12 @@ def _call_ollama(prompt: str, system: str = "") -> str | None:
 
 
 def generate(prompt: str, system: str = "", max_tokens: int = 8192) -> dict:
-    """LLM 호출 — Gemini 무료 모델 순차 시도 → Ollama 폴백.
+    """LLM 호출 — Gemini (GCP 크레딧) → Ollama 폴백.
 
     Returns:
-        {
-            "text": "생성된 텍스트",
-            "model": "사용된 모델명",
-            "provider": "gemini" | "ollama",
-        }
+        {"text": "생성된 텍스트", "model": "모델명", "provider": "gemini|ollama"}
     """
-    # 1) Gemini 순차 시도: 모든 모델 × 모든 키
+    # 1) Gemini (GCP 크레딧)
     for model in GEMINI_MODELS:
         for key in GEMINI_API_KEYS:
             result = _call_gemini(prompt, system=system, model=model, api_key=key, max_tokens=max_tokens)
@@ -110,7 +105,7 @@ def generate(prompt: str, system: str = "", max_tokens: int = 8192) -> dict:
                 print(f"  [Model] {model} 성공")
                 return {"text": result, "model": model, "provider": "gemini"}
 
-    # 2) Ollama 폴백
+    # 2) Ollama (로컬 폴백)
     print("  [Model] Gemini 전부 실패 → Ollama 폴백")
     result = _call_ollama(prompt, system=system)
     if result:
