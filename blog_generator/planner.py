@@ -194,7 +194,6 @@ def plan_topics(count: int = 10, blog_id: str = "") -> list[dict]:
 - 사용 가능 템플릿: {', '.join(available_templates)}
 
 핵심 원칙:
-- 지역 키워드를 사용하지 않는 전문 콘텐츠를 기획합니다.
 - 상표·디자인·특허 출원에 관한 실무 정보, 비교, 분석, 사례 중심입니다.
 - 트렌드 데이터를 활용해 시의성 있는 주제를 선정합니다.
 - 이전에 사용한 주제와 겹치지 않아야 합니다.
@@ -255,14 +254,27 @@ def plan_topics(count: int = 10, blog_id: str = "") -> list[dict]:
 
     topics = topics[:count]
 
+    # 메타 정보 첨부
+    _meta = {
+        "system_prompt": system,
+        "user_prompt": prompt,
+        "model": result.get("model", ""),
+        "provider": result.get("provider", ""),
+        "raw_response": result.get("text", ""),
+    }
+
     # 중간결과 저장
     out = Path("data/generated")
     out.mkdir(parents=True, exist_ok=True)
     today = datetime.now().strftime("%Y%m%d")
     (out / f"{today}_00_plan.json").write_text(
-        json.dumps(topics, ensure_ascii=False, indent=2), encoding="utf-8"
+        json.dumps({"topics": topics, "meta": _meta}, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     print(f"  [Planner] {len(topics)}개 주제 계획 완료")
+
+    # topics에 _meta 첨부 (app.py에서 접근 가능)
+    for t in topics:
+        t["_planner_meta"] = _meta
 
     return topics
 

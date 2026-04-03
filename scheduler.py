@@ -201,6 +201,18 @@ def run_forever():
 
     while True:
         today = datetime.now().strftime("%Y-%m-%d")
+
+        # 매일 데이터 수집 (오늘 CSV가 없으면 실행)
+        today_ymd = datetime.now().strftime("%Y%m%d")
+        if not Path(f"data/collected/{today_ymd}_naver_news.csv").exists():
+            print(f"\n  [{today}] 데이터 수집 시작...")
+            try:
+                from collectors import collect_all
+                collect_all()
+                print(f"  [{today}] 데이터 수집 완료")
+            except Exception as e:
+                print(f"  [{today}] 데이터 수집 실패: {e}")
+
         schedule = make_daily_schedule()
 
         print(f"\n{'#' * 60}")
