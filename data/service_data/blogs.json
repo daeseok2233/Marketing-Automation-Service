@@ -17,7 +17,8 @@
       "templates": [
         "howto",
         "checklist",
-        "compare"
+        "compare",
+        "newsjacking"
       ],
       "naver_id": "searan0131",
       "blog_url": "m_arkpick"
@@ -28,7 +29,8 @@
       "templates": [
         "column",
         "dispute_report",
-        "warning"
+        "warning",
+        "newsjacking"
       ],
       "naver_id": "wholegod",
       "blog_url": "markpick-"

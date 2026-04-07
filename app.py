@@ -287,8 +287,11 @@ with step3:
 
         # 프롬프트 미리보기/편집
         with st.expander("시스템 프롬프트 보기/편집"):
-            from blog_generator.local_blog_writer import SYSTEM_PROMPT
-            edited_system = st.text_area("시스템 프롬프트", SYSTEM_PROMPT, height=400, key="sys_prompt")
+            from blog_generator.local_blog_writer import _build_system_prompt, _get_random_tone
+            preview_tone = _get_random_tone()
+            preview_system = _build_system_prompt(preview_tone)
+            st.markdown(f"**미리보기 톤**: {preview_tone['name']}")
+            edited_system = st.text_area("시스템 프롬프트", preview_system, height=400, key="sys_prompt")
 
         with st.expander("유저 프롬프트 미리보기"):
             from blog_generator.local_blog_writer import _build_user_prompt, _load_blog_images, _load_image_layout, _build_image_prompt

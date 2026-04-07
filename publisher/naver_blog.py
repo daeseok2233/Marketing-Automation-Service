@@ -156,7 +156,7 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
 
     # 마크다운 → 명령 리스트 변환
     from publisher.blog_formatter import markdown_to_commands
-    commands = markdown_to_commands(body, template_name=template_name)
+    commands = markdown_to_commands(body, template_name=template_name, blog_id=cookie_blog_id)
     print(f"  [Format] {len(commands)}개 명령 생성")
 
     # 세션 가져오기 (기존 세션 재사용 또는 새로 생성)
@@ -262,16 +262,34 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
                         fc_info.value.set_files(abs_path)
                         _random_delay(3, 5)
 
-                        # 파일 전송 오류 팝업 처리
-                        try:
-                            err_popup = page.locator("button:has-text('확인')").first
-                            if err_popup.is_visible(timeout=1000):
-                                err_popup.click()
-                                _random_delay(0.5, 1)
-                                print(f"  [Naver] 이미지 전송 오류 — 스킵: {Path(cmd['path']).name}")
+                        # 파일 전송 오류 팝업 처리 (최대 3초 대기)
+                        upload_failed = False
+                        for popup_sel in [
+                            ".se-popup-button-confirm",
+                            "button:has-text('확인')",
+                        ]:
+                            try:
+                                popup_btn = page.locator(popup_sel).first
+                                if popup_btn.is_visible(timeout=2000):
+                                    # 팝업 텍스트에 "오류" 또는 "전송"이 있는지 확인
+                                    popup_text = page.locator(".se-popup-content, .layer_popup").first.inner_text(timeout=1000) if True else ""
+                                    popup_btn.click()
+                                    _random_delay(0.5, 1)
+                                    print(f"  [Naver] 이미지 전송 오류 — 스킵: {Path(cmd['path']).name}")
+                                    upload_failed = True
+                                    # 본문 영역 다시 클릭
+                                    try:
+                                        body_area = page.locator(".se-component.se-text .se-text-paragraph").last
+                                        body_area.click()
+                                        _random_delay(0.5, 1)
+                                    except Exception:
+                                        pass
+                                    break
+                            except Exception:
                                 continue
-                        except Exception:
-                            pass
+
+                        if upload_failed:
+                            continue
 
                         image_count += 1
                         print(f"  [Naver] 이미지 {image_count}: {Path(cmd['path']).name}")

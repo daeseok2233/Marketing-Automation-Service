@@ -18,12 +18,12 @@ STATE_PATH = Path("data/schedule_state.json")
 
 # 블로그별 설정
 BLOG_CONFIGS = {
-    "blog_02": {"posts_per_day": 10, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_03": {"posts_per_day": 10, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_04": {"posts_per_day": 10, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_05": {"posts_per_day": 10, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_06": {"posts_per_day": 10, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_07": {"posts_per_day": 20, "min_interval_min": 30, "max_interval_min": 42},
+    "blog_02": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
+    "blog_03": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
+    "blog_04": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
+    "blog_05": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
+    "blog_06": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
+    "blog_07": {"posts_per_day": 40, "min_interval_min": 30, "max_interval_min": 42},
 }
 
 
@@ -56,9 +56,31 @@ def _save_history(blog_id: str, topic: dict, blog: dict):
     STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+# ── 블로그별 주제 큐 (하루 시작 시 한 번에 생성) ──
+_topic_queues = {}  # {blog_id: [topic1, topic2, ...]}
+
+
+def _ensure_topic_queue(blog_id: str):
+    """블로그별 주제 큐가 비었으면 하루치를 한 번에 생성."""
+    if blog_id in _topic_queues and _topic_queues[blog_id]:
+        return  # 큐에 아직 주제가 남아있음
+
+    config = BLOG_CONFIGS.get(blog_id, {})
+    remaining = config.get("posts_per_day", 10) - _get_today_count(blog_id)
+    if remaining <= 0:
+        _topic_queues[blog_id] = []
+        return
+
+    print(f"  [{blog_id}] 하루치 주제 {remaining}개 일괄 생성 중...")
+    from blog_generator.planner import plan_topics
+    topics = plan_topics(count=remaining, blog_id=blog_id)
+    _topic_queues[blog_id] = topics
+    print(f"  [{blog_id}] 주제 큐: {len(topics)}개 준비 완료")
+
+
 def publish_one(blog_id: str) -> dict | None:
-    """블로그 1개에 글 1개 생성 + 발행."""
-    from blog_generator.planner import plan_topics, search_for_topic
+    """블로그 1개에 글 1개 생성 + 발행. 주제는 큐에서 꺼내 쓴다."""
+    from blog_generator.planner import search_for_topic
     from blog_generator.local_blog_writer import write_local_blog
     from publisher.naver_blog import publish_to_naver
 
@@ -76,13 +98,13 @@ def publish_one(blog_id: str) -> dict | None:
         shutil.rmtree(bg_dir, ignore_errors=True)
     bg_dir.mkdir(parents=True, exist_ok=True)
 
-    # 주제 계획
-    topics = plan_topics(count=1, blog_id=blog_id)
-    if not topics:
-        print(f"  [{blog_id}] 주제 생성 실패")
+    # 주제 큐에서 꺼내기 (큐 비었으면 자동 생성)
+    _ensure_topic_queue(blog_id)
+    queue = _topic_queues.get(blog_id, [])
+    if not queue:
         raise RuntimeError("주제 생성 실패")
 
-    topic = topics[0]
+    topic = queue.pop(0)
     template = topic.get("template", blog_info.get("templates", ["local_trend"])[0])
 
     # 데이터 수집
@@ -91,6 +113,10 @@ def publish_one(blog_id: str) -> dict | None:
         topic["ref_news"] = "\n".join(f"- {n['title']}" for n in ref["news"])
     if ref.get("blogs"):
         topic["ref_blogs"] = "\n".join(f"- {b['title']}" for b in ref["blogs"])
+    if ref.get("realtime_trending"):
+        topic["ref_trending"] = "\n".join(
+            f"- {t['keyword']} ({t['traffic']})" for t in ref["realtime_trending"][:10]
+        )
 
     # 글 생성
     blog = write_local_blog(topic, template_name=template)
@@ -139,6 +165,7 @@ def publish_one(blog_id: str) -> dict | None:
         "template": template,
         "region": topic.get("region", ""),
         "business": topic.get("business", ""),
+        "tone": blog.get("tone", ""),
         "time": datetime.now().strftime("%H:%M"),
         "url": url,
     }
@@ -213,6 +240,9 @@ def run_forever():
             except Exception as e:
                 print(f"  [{today}] 데이터 수집 실패: {e}")
 
+        # 하루 시작 — 주제 큐 초기화
+        _topic_queues.clear()
+
         schedule = make_daily_schedule()
 
         print(f"\n{'#' * 60}")
@@ -264,7 +294,7 @@ def run_forever():
                             notify_success(
                                 blog_id=blog_id, title=result.get("title", ""),
                                 url=result.get("url", ""), template=result.get("template", ""),
-                                region=result.get("region", ""),
+                                region=result.get("region", ""), tone=result.get("tone", ""),
                             )
                         except Exception:
                             pass

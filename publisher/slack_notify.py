@@ -10,7 +10,7 @@ load_dotenv()
 WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 
 
-def notify_success(blog_id: str, title: str, url: str = "", template: str = "", region: str = ""):
+def notify_success(blog_id: str, title: str, url: str = "", template: str = "", region: str = "", tone: str = ""):
     """발행 성공 알림."""
     if not WEBHOOK_URL:
         return
@@ -19,6 +19,8 @@ def notify_success(blog_id: str, title: str, url: str = "", template: str = "", 
         fields += f"  |  *템플릿*: {template}"
     if region:
         fields += f"  |  *지역*: {region}"
+    if tone:
+        fields += f"  |  *톤*: {tone}"
     if url:
         fields += f"\n<{url}|글 보기>"
     text = f":white_check_mark: *발행 성공*\n{fields}\n*제목*: {title}"

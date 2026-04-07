@@ -1,10 +1,12 @@
 """LLM 마크다운 → 네이버 블로그 발행용 구조화 포맷 변환."""
 
 import csv
+import json
 import re
 from pathlib import Path
 
 IMAGE_CSV_PATH = Path("data/image/image_list.csv")
+BLOG_LINKS_PATH = Path("data/image/blog_links.json")
 
 
 def _load_image_links() -> dict:
@@ -20,18 +22,44 @@ def _load_image_links() -> dict:
     return links
 
 
-def markdown_to_commands(body: str, template_name: str = "") -> list[dict]:
+def _load_blog_links(blog_id: str) -> dict:
+    """블로그별 링크 매핑 로드. 기본 링크 → 블로그별 cutt.ly 링크로 치환."""
+    if not BLOG_LINKS_PATH.exists() or not blog_id:
+        return {}
+    data = json.loads(BLOG_LINKS_PATH.read_text(encoding="utf-8"))
+    return data.get(blog_id, {})
+
+
+def _replace_link(link: str, blog_links: dict) -> str:
+    """기본 링크를 블로그별 링크로 치환."""
+    if not link or not blog_links:
+        return link
+
+    # 카카오톡 링크
+    if "kakao" in link.lower() or "pf.kakao" in link:
+        return blog_links.get("카카오", link)
+
+    # 마크뷰 링크
+    if "markview" in link.lower():
+        return blog_links.get("마크뷰", link)
+
+    # 마크픽 링크 (markpick 또는 기본 markpick.co.kr)
+    if "markpick" in link.lower():
+        return blog_links.get("마크픽", link)
+
+    return link
+
+
+def markdown_to_commands(body: str, template_name: str = "", blog_id: str = "") -> list[dict]:
     """마크다운 본문을 Playwright 명령 리스트로 변환한다.
 
-    각 명령:
-        {"type": "heading", "text": "...", "size": 24}
-        {"type": "text", "text": "...", "bold": False}
-        {"type": "bold_text", "text": "..."}
-        {"type": "blank_line"}
-        {"type": "image", "path": "...", "link": ""}
-        {"type": "hashtags", "text": "#태그1 #태그2"}
+    Args:
+        body: 마크다운 본문
+        template_name: 템플릿명
+        blog_id: 블로그 ID (블로그별 링크 치환용)
     """
     image_links = _load_image_links()
+    blog_links = _load_blog_links(blog_id)
     commands = []
     lines = body.split("\n")
     in_bold = False
@@ -50,7 +78,6 @@ def markdown_to_commands(body: str, template_name: str = "") -> list[dict]:
             img_path = img_match.group(2).strip()
             # IMGUR URL → 썸네일
             if img_path.startswith("IMGUR:"):
-                # 로컬 썸네일 파일로 매핑
                 thumb_dir = Path("data/generated/thumbnails")
                 if thumb_dir.exists():
                     thumbs = sorted(thumb_dir.glob("*.png"),
@@ -65,13 +92,14 @@ def markdown_to_commands(body: str, template_name: str = "") -> list[dict]:
             elif img_path.startswith("http"):
                 continue
 
-            # 로컬 이미지
+            # 로컬 이미지 — 블로그별 링크 치환
             filename = Path(img_path).name
-            link = image_links.get(filename, "")
+            base_link = image_links.get(filename, "")
+            final_link = _replace_link(base_link, blog_links)
             commands.append({
                 "type": "image",
                 "path": img_path,
-                "link": link,
+                "link": final_link,
             })
             continue
 
@@ -115,7 +143,6 @@ def markdown_to_commands(body: str, template_name: str = "") -> list[dict]:
             continue
 
         # ── 일반 텍스트 (** 볼드 파싱) ──
-        # 여는 **만 있고 닫는 **가 없으면 제거
         parts = re.split(r"(\*\*)", stripped)
         current_bold = in_bold
         line_commands = []
@@ -131,7 +158,6 @@ def markdown_to_commands(body: str, template_name: str = "") -> list[dict]:
             else:
                 line_commands.append({"type": "text", "text": part})
 
-        # 볼드가 열린 채로 줄이 끝나면 다음 줄에서 이어감
         in_bold = current_bold
 
         if line_commands:
@@ -139,5 +165,3 @@ def markdown_to_commands(body: str, template_name: str = "") -> list[dict]:
         commands.append({"type": "newline"})
 
     return commands
-
-
