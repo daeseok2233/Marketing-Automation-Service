@@ -50,6 +50,129 @@ def _replace_link(link: str, blog_links: dict) -> str:
     return link
 
 
+def _load_heading_sizes(template_name: str) -> dict:
+    """template structure에서 heading content → size 매핑 로드."""
+    if not template_name:
+        return {}
+    tpl_path = Path(f"data/templates/{template_name}.json")
+    if not tpl_path.exists():
+        return {}
+    data = json.loads(tpl_path.read_text(encoding="utf-8"))
+    structure = data.get("structure", [])
+    if not structure or not isinstance(structure, list):
+        return {}
+    sizes = {}
+    for item in structure:
+        if item.get("type") == "heading" and "content" in item and "size" in item:
+            # {region} 등 변수는 제거하고 핵심 텍스트만 키로
+            key = item["content"].replace("{region}", "").replace("{region_short}", "").strip()
+            sizes[key] = item["size"]
+    return sizes
+
+
+def structure_to_commands(tpl_data: dict, slots: dict, blog_images: list,
+                          blog_id: str = "", thumb_url: str = "",
+                          region: str = "", region_short: str = "") -> list[dict]:
+    """template structure + LLM 슬롯 → Playwright 명령 직접 생성.
+
+    마크다운 중간 단계 없이 structure를 그대로 Playwright 명령으로 변환.
+    font size, quote style, divider 등 structure에 정의된 대로 정확히 반영.
+    """
+    # JSON 직렬화 후 키가 문자열로 바뀌는 문제 대응 (1 → "1")
+    slots = {int(k): v for k, v in slots.items()}
+
+    image_links = _load_image_links()
+    blog_links = _load_blog_links(blog_id)
+
+    img_list = [img for img in blog_images]
+    img_idx = [0]
+
+    def _pick_image():
+        if img_idx[0] < len(img_list):
+            img = img_list[img_idx[0]]
+            img_idx[0] += 1
+            return img
+        return None
+
+    commands = []
+    slot_idx = 0
+
+    for item in tpl_data.get("structure", []):
+        t = item.get("type", "")
+        content = item.get("content", "")
+        content = content.replace("{region}", region or "")
+        content = content.replace("{region_short}", region_short or "")
+
+        if t == "blank":
+            commands.append({"type": "blank_line"})
+
+        elif t == "divider":
+            commands.append({"type": "divider"})
+
+        elif t == "heading":
+            size = item.get("size", 19)
+            commands.append({"type": "blank_line"})
+            commands.append({"type": "heading", "text": content, "size": size})
+            commands.append({"type": "blank_line"})
+
+        elif t == "text":
+            slot_idx += 1
+            text = slots.get(slot_idx, content)
+            # 줄바꿈 단위로 분리해서 각각 텍스트 명령으로
+            for line in text.split("\n"):
+                if line.strip():
+                    commands.append({"type": "text", "text": line})
+                    commands.append({"type": "newline"})
+                else:
+                    commands.append({"type": "blank_line"})
+
+        elif t == "quote":
+            slot_idx += 1
+            text = slots.get(slot_idx, content)
+            style = item.get("style", 3)
+            commands.append({"type": "quote", "text": text, "style": style})
+
+        elif t == "bold_text":
+            slot_idx += 1
+            text = slots.get(slot_idx, content)
+            commands.append({"type": "bold_text", "text": text})
+            commands.append({"type": "newline"})
+
+        elif t == "hashtags":
+            slot_idx += 1
+            text = slots.get(slot_idx, "")
+            if text and not text.startswith("#"):
+                text = " ".join(f"#{w.strip().lstrip('#')}" for w in text.split() if w.strip())
+            commands.append({"type": "hashtags", "text": text})
+
+        elif t == "image":
+            if "썸네일" in content:
+                # 썸네일 — 최신 생성된 파일 사용
+                thumb_dir = Path("data/generated/thumbnails")
+                if thumb_dir.exists():
+                    thumbs = sorted(thumb_dir.glob("*.png"),
+                                    key=lambda f: f.stat().st_mtime, reverse=True)
+                    if thumbs:
+                        commands.append({"type": "image", "path": str(thumbs[0]), "link": ""})
+            elif "쿠폰" in content or "coupon" in content.lower():
+                path = "data/image/event/image_mark_pick_coupon.png"
+                filename = Path(path).name
+                base_link = image_links.get(filename, "")
+                final_link = _replace_link(base_link, blog_links)
+                commands.append({"type": "image", "path": path, "link": final_link})
+            elif item.get("fixed"):
+                # 고정 이미지 (파일명이 content에 있을 수 있음)
+                commands.append({"type": "image", "path": content, "link": ""})
+            else:
+                img = _pick_image()
+                if img:
+                    base_link = image_links.get(img["filename"], "")
+                    final_link = _replace_link(base_link, blog_links)
+                    commands.append({"type": "image", "path": img["path"], "link": final_link})
+
+    return commands
+
+
 def markdown_to_commands(body: str, template_name: str = "", blog_id: str = "") -> list[dict]:
     """마크다운 본문을 Playwright 명령 리스트로 변환한다.
 
@@ -60,6 +183,7 @@ def markdown_to_commands(body: str, template_name: str = "", blog_id: str = "") 
     """
     image_links = _load_image_links()
     blog_links = _load_blog_links(blog_id)
+    heading_sizes = _load_heading_sizes(template_name)
     commands = []
     lines = body.split("\n")
     in_bold = False
@@ -109,7 +233,13 @@ def markdown_to_commands(body: str, template_name: str = "", blog_id: str = "") 
 
         # ── 구분선 ──
         if stripped == "---":
-            commands.append({"type": "blank_line"})
+            commands.append({"type": "divider"})
+            continue
+
+        # ── 인용문 ──
+        if stripped.startswith("> "):
+            quote_text = stripped[2:].strip()
+            commands.append({"type": "quote", "text": quote_text, "style": 3})
             continue
 
         # ── 해시태그 ──
@@ -121,8 +251,14 @@ def markdown_to_commands(body: str, template_name: str = "", blog_id: str = "") 
         # ── H2 소제목 ──
         if stripped.startswith("## "):
             text = stripped[3:].strip().strip("* ")
+            # template structure에서 size 가져오기 (매칭되는 키 찾기)
+            size = 19  # 기본값
+            for key, sz in heading_sizes.items():
+                if key and key in text:
+                    size = sz
+                    break
             commands.append({"type": "blank_line"})
-            commands.append({"type": "heading", "text": text, "size": 19})
+            commands.append({"type": "heading", "text": text, "size": size})
             commands.append({"type": "blank_line"})
             continue
 

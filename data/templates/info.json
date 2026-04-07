@@ -5,28 +5,6 @@
     "SEO": "'~이란', '~란 무엇인가', '~뜻', '~개념' 등 informational 검색 의도 키워드를 H2·첫 단락에 자연 배치.",
     "AEO": "H2를 질문 형식으로 작성. 각 H2 아래 첫 문장은 직접 답변으로 시작 → Featured Snippet 최적화."
   },
-  "conditions": {
-    "use": [
-      "개념·용어·제도 설명이 목적인 주제",
-      "'~란', '~이란', '~뜻' 등 개념 검색어 타겟",
-      "갈등 없는 중립적 정보 전달"
-    ],
-    "avoid": [
-      "실제 분쟁이 있는 주제 — event형 사용",
-      "단계별 절차 안내 — howto형 사용"
-    ]
-  },
-  "structure": {
-    "sections[0]": "'혹시 이런 경험 있으신가요?' 공감. 첫 문장에 메인 키워드 포함. 글 예고. 100~150자.",
-    "sections[1:-1]": [
-      "개념 정의: '{kw}이란 무엇인가요?' — 정의 2~3문장. 첫 문장이 직접 답변. 비유·예시 1개.",
-      "왜 중요한가: 미등록·미숙지 시 리스크 1~2개.",
-      "핵심 포인트 3가지: 번호 리스트. 각 2~3문장."
-    ],
-    "sections[-1]": "핵심 요약 1문장. 서비스를 해결책으로 자연 소개. 부드러운 행동 유도.",
-    "cta": "서비스 무료 체험 또는 상담 연결.",
-    "hashtags": "'상표란', '상표권이란' 등 개념 중심 키워드 8~12개"
-  },
   "writing_rules": [
     "H2 첫 문장은 반드시 질문에 대한 직접 답변",
     "전문 용어 첫 등장 시 괄호 안에 쉬운 설명 추가",
@@ -42,54 +20,35 @@
     "min": 1500,
     "max": 2500
   },
-  "image_layout": {
-    "total": 3,
-    "layout": [
-      {
-        "position": "최상단",
-        "rule": "썸네일 (자동생성)",
-        "fixed": true
-      },
-      {
-        "position": "핵심 개념 설명 뒤",
-        "rule": "서비스소개 이미지 중 1개 선택"
-      },
-      {
-        "position": "글 마지막 CTA",
-        "rule": "할인쿠폰 (image_mark_pick_coupon.png)",
-        "fixed": true
-      }
-    ]
-  },
-  "prompt_structure": [
-    "[썸네일 이미지]",
-    "",
-    "## 상표란 무엇인가요?",
-    "핵심 개념을 쉽게 설명 (5~7줄)",
-    "",
-    "## 상표의 종류",
-    "문자상표, 도형상표, 결합상표 등 설명 (5~7줄)",
-    "",
-    "[이미지: 적절한_파일명.png]",
-    "",
-    "## 상표 등록의 효과",
-    "법적 보호, 독점 사용권 등 (5~7줄)",
-    "",
-    "## 상표와 헷갈리기 쉬운 개념",
-    "상호, 브랜드, 로고의 차이 (4~5줄)",
-    "",
-    "## 마크뷰로 내 상표 확인하기",
-    "AI 검색 소개 (3~4줄)",
-    "[이미지: 마크뷰_이미지_파일명.png]",
-    "",
-    "## 마크픽으로 출원하기",
-    "👉 순수 대행비용 10만원 (3~4줄)",
-    "[이미지: 마크픽_이미지_파일명.png]",
-    "",
-    "CTA: '마크뷰 블로그 보고 왔습니다' 1만원 할인",
-    "[이미지: image_mark_pick_coupon.png]",
-    "",
-    "#해시태그 20개 이상 (개념 설명 중심 키워드)"
+  "structure": [
+    {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "상표란 무엇인가요?"},
+    {"type": "text", "content": "핵심 개념을 쉽게 설명 (5~7줄)"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "상표의 종류"},
+    {"type": "text", "content": "문자상표, 도형상표, 결합상표 등 설명 (5~7줄)"},
+    {"type": "blank"},
+    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "상표 등록의 효과"},
+    {"type": "text", "content": "법적 보호, 독점 사용권 등 (5~7줄)"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "상표와 헷갈리기 쉬운 개념"},
+    {"type": "text", "content": "상호, 브랜드, 로고의 차이 (4~5줄)"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "마크뷰로 내 상표 확인하기"},
+    {"type": "text", "content": "AI 검색 소개 (3~4줄)"},
+    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "마크픽으로 출원하기"},
+    {"type": "text", "content": "순수 대행비용 10만원 (3~4줄)"},
+    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
+    {"type": "blank"},
+    {"type": "text", "content": "CTA: '마크뷰 블로그 보고 왔습니다' 1만원 할인"},
+    {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
+    {"type": "blank"},
+    {"type": "hashtags", "content": "10개 (개념 설명 중심 키워드)"}
   ],
   "is_local": false
 }

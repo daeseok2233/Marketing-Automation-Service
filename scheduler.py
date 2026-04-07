@@ -78,10 +78,14 @@ def _ensure_topic_queue(blog_id: str):
     print(f"  [{blog_id}] 주제 큐: {len(topics)}개 준비 완료")
 
 
-def publish_one(blog_id: str) -> dict | None:
-    """블로그 1개에 글 1개 생성 + 발행. 주제는 큐에서 꺼내 쓴다."""
-    from blog_generator.planner import search_for_topic
-    from blog_generator.local_blog_writer import write_local_blog
+def publish_one(blog_id: str, use_agent: bool = True) -> dict | None:
+    """블로그 1개에 글 1개 생성 + 발행.
+
+    Args:
+        blog_id: 블로그 ID
+        use_agent: True면 에이전틱 플래너 사용, False면 기존 파이프라인
+    """
+    from blog_generator.blog_writer import write_local_blog
     from publisher.naver_blog import publish_to_naver
 
     blogs_json = _load_blogs_json()
@@ -98,25 +102,31 @@ def publish_one(blog_id: str) -> dict | None:
         shutil.rmtree(bg_dir, ignore_errors=True)
     bg_dir.mkdir(parents=True, exist_ok=True)
 
-    # 주제 큐에서 꺼내기 (큐 비었으면 자동 생성)
-    _ensure_topic_queue(blog_id)
-    queue = _topic_queues.get(blog_id, [])
-    if not queue:
-        raise RuntimeError("주제 생성 실패")
+    if use_agent:
+        # ── 에이전틱 모드: Gemini가 알아서 도구 선택 + 정보 수집 ──
+        from blog_generator.agent_planner import agent_plan_topic
+        topic = agent_plan_topic(blog_id=blog_id)
+        template = topic.get("template", blog_info.get("templates", ["local_trend"])[0])
+    else:
+        # ── 기존 모드: 하드코딩된 파이프라인 ──
+        from blog_generator.planner import search_for_topic
+        _ensure_topic_queue(blog_id)
+        queue = _topic_queues.get(blog_id, [])
+        if not queue:
+            raise RuntimeError("주제 생성 실패")
 
-    topic = queue.pop(0)
-    template = topic.get("template", blog_info.get("templates", ["local_trend"])[0])
+        topic = queue.pop(0)
+        template = topic.get("template", blog_info.get("templates", ["local_trend"])[0])
 
-    # 데이터 수집
-    ref = search_for_topic(topic)
-    if ref.get("news"):
-        topic["ref_news"] = "\n".join(f"- {n['title']}" for n in ref["news"])
-    if ref.get("blogs"):
-        topic["ref_blogs"] = "\n".join(f"- {b['title']}" for b in ref["blogs"])
-    if ref.get("realtime_trending"):
-        topic["ref_trending"] = "\n".join(
-            f"- {t['keyword']} ({t['traffic']})" for t in ref["realtime_trending"][:10]
-        )
+        ref = search_for_topic(topic)
+        if ref.get("news"):
+            topic["ref_news"] = "\n".join(f"- {n['title']}" for n in ref["news"])
+        if ref.get("blogs"):
+            topic["ref_blogs"] = "\n".join(f"- {b['title']}" for b in ref["blogs"])
+        if ref.get("realtime_trending"):
+            topic["ref_trending"] = "\n".join(
+                f"- {t['keyword']} ({t['traffic']})" for t in ref["realtime_trending"][:10]
+            )
 
     # 글 생성
     blog = write_local_blog(topic, template_name=template)
@@ -133,6 +143,11 @@ def publish_one(blog_id: str) -> dict | None:
             last = lines[-1]
             if len(last) <= 3 and not last.startswith("#") and not last.startswith("["):
                 return False, f"끊김(\"{last}\")"
+        # 해시태그 없으면 끊긴 것
+        if "#" not in body.split("\n")[-1] if lines else "":
+            has_hashtag = any("#" in l and l.count("#") >= 3 for l in lines)
+            if not has_hashtag:
+                return False, "해시태그 없음(끊김)"
         return True, "OK"
 
     valid, reason = _is_valid(blog)
@@ -225,6 +240,16 @@ def make_daily_schedule() -> list:
 
 def run_forever():
     """매일 00:00~24:00 사이 모든 블로그 자동 발행."""
+
+    # 자정 이후에 시작하도록 대기
+    now = datetime.now()
+    if now.hour >= 22:
+        tomorrow_0am = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        wait = (tomorrow_0am - now).total_seconds()
+        hours = int(wait // 3600)
+        mins = int((wait % 3600) // 60)
+        print(f"\n  현재 {now.strftime('%H:%M')} — 자정까지 대기 ({hours}시간 {mins}분)")
+        time.sleep(wait)
 
     while True:
         today = datetime.now().strftime("%Y-%m-%d")

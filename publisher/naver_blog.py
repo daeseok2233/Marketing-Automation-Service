@@ -152,11 +152,23 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
         return ""
 
     title = blog_data.get("title", "")
-    body = blog_data.get("body", "")
-
-    # 마크다운 → 명령 리스트 변환
-    from publisher.blog_formatter import markdown_to_commands
-    commands = markdown_to_commands(body, template_name=template_name, blog_id=cookie_blog_id)
+    # structure → Playwright 명령 직접 변환 (마크다운 중간 단계 없음)
+    from publisher.blog_formatter import structure_to_commands
+    if blog_data.get("_tpl_data") and blog_data.get("_slots"):
+        commands = structure_to_commands(
+            tpl_data=blog_data["_tpl_data"],
+            slots=blog_data["_slots"],
+            blog_images=blog_data.get("_blog_images", []),
+            blog_id=cookie_blog_id,
+            thumb_url=blog_data.get("_thumb_url", ""),
+            region=blog_data.get("region", ""),
+            region_short=blog_data.get("region_short", ""),
+        )
+    else:
+        # 폴백: body가 있으면 기존 마크다운 파싱
+        from publisher.blog_formatter import markdown_to_commands
+        body = blog_data.get("body", "")
+        commands = markdown_to_commands(body, template_name=template_name, blog_id=cookie_blog_id)
     print(f"  [Format] {len(commands)}개 명령 생성")
 
     # 세션 가져오기 (기존 세션 재사용 또는 새로 생성)
@@ -252,6 +264,41 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
                 page.keyboard.press("Control+b")
                 page.keyboard.press("Enter")
                 _change_font_size(page, 15)
+
+            elif t == "quote":
+                # 인용구 삽입: 네이버 에디터 인용구 버튼
+                try:
+                    quote_btn = page.locator("button.se-quote-toolbar-button, button[data-name='quotation']").first
+                    if quote_btn.is_visible(timeout=2000):
+                        quote_btn.click()
+                        _random_delay(0.5, 1)
+                        # 스타일 선택 (style 1~5)
+                        style = cmd.get("style", 3)
+                        style_btn = page.locator(f".se-popup-quote-style button >> nth={style - 1}")
+                        if style_btn.is_visible(timeout=1000):
+                            style_btn.click()
+                            _random_delay(0.5, 1)
+                    page.keyboard.type(cmd["text"], delay=random.randint(3, 10))
+                    page.keyboard.press("Enter")
+                    page.keyboard.press("Enter")
+                    _random_delay(0.3, 0.5)
+                except Exception as e:
+                    # 인용구 버튼 실패 시 일반 텍스트로 대체
+                    page.keyboard.type(cmd["text"], delay=random.randint(3, 10))
+                    page.keyboard.press("Enter")
+                    print(f"  [Naver] 인용구 실패 → 텍스트 대체: {e}")
+
+            elif t == "divider":
+                # 구분선 삽입: 네이버 에디터 구분선 버튼
+                try:
+                    line_btn = page.locator("button.se-horizontal-line-toolbar-button, button[data-name='horizontalLine']").first
+                    if line_btn.is_visible(timeout=2000):
+                        line_btn.click()
+                        _random_delay(0.5, 1)
+                    else:
+                        page.keyboard.press("Enter")
+                except Exception:
+                    page.keyboard.press("Enter")
 
             elif t == "image":
                 abs_path = os.path.abspath(cmd["path"])

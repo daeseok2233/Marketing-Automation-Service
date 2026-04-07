@@ -113,7 +113,7 @@ for i, config in enumerate(BLOG_CONFIGS):
     # blog_04~06은 기존 local 파이프라인
     if config["style"] == "local":
         from blog_generator.planner import plan_topics, search_for_topic
-        from blog_generator.local_blog_writer import write_local_blog
+        from blog_generator.blog_writer import write_local_blog
 
         topics = plan_topics(count=1)
         topic = topics[0]

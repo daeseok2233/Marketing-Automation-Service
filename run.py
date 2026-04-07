@@ -88,7 +88,7 @@ def run_local(count: int = 10, upload: bool = True, blog_id: str = "blog_04"):
         print(f"  {i+1:2d}. 뉴스 {len(ref['news'])}건 + 블로그 {len(ref['blogs'])}건")
 
     # ── 3단계: 글 생성 + 업로드 ──
-    from blog_generator.local_blog_writer import write_local_blog
+    from blog_generator.blog_writer import write_local_blog
 
     results = []
     today = datetime.now().strftime("%Y%m%d")

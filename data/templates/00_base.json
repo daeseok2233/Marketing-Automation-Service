@@ -6,15 +6,6 @@
     "AEO": "AI 검색 답변 인용 최적화 전략",
     "GEO": "생성형 AI 인용 최적화 전략"
   },
-  "conditions": {
-    "use": ["이 템플릿을 써야 하는 상황"],
-    "avoid": ["이 템플릿을 쓰면 안 되는 상황"]
-  },
-  "structure": {
-    "sections[0:-1]": "본문 섹션 순서와 각 섹션 작성 지침",
-    "cta": "서비스 홍보",
-    "hashtags": "주제 관련 키워드"
-  },
   "writing_rules": [
     "작성 시 반드시 지켜야 할 규칙"
   ],
@@ -24,5 +15,16 @@
   "length": {
     "min": 0,
     "max": 0
-  }
+  },
+  "structure": [
+    {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "섹션 제목"},
+    {"type": "text", "content": "본문 섹션 작성 지침"},
+    {"type": "blank"},
+    {"type": "text", "content": "CTA: 서비스 홍보"},
+    {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
+    {"type": "blank"},
+    {"type": "hashtags", "content": "10개 (주제 관련 키워드)"}
+  ]
 }
