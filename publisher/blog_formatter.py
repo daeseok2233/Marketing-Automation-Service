@@ -102,6 +102,9 @@ def structure_to_commands(tpl_data: dict, slots: dict, blog_images: list,
         content = item.get("content", "")
         content = content.replace("{region}", region or "")
         content = content.replace("{region_short}", region_short or "")
+        # 남은 {변수} 제거 (치환 안 된 것 방지)
+        import re as _re
+        content = _re.sub(r"\{[a-z_]+\}", "", content).strip()
 
         if t == "blank":
             commands.append({"type": "blank_line"})
@@ -117,8 +120,9 @@ def structure_to_commands(tpl_data: dict, slots: dict, blog_images: list,
 
         elif t == "text":
             slot_idx += 1
-            text = slots.get(slot_idx, content)
-            # 줄바꿈 단위로 분리해서 각각 텍스트 명령으로
+            text = slots.get(slot_idx)
+            if not text:
+                continue  # 슬롯 없으면 스킵 (지시사항 노출 방지)
             for line in text.split("\n"):
                 if line.strip():
                     commands.append({"type": "text", "text": line})
@@ -128,13 +132,17 @@ def structure_to_commands(tpl_data: dict, slots: dict, blog_images: list,
 
         elif t == "quote":
             slot_idx += 1
-            text = slots.get(slot_idx, content)
-            style = item.get("style", 3)
+            text = slots.get(slot_idx)
+            if not text:
+                continue  # 슬롯 없으면 스킵
+            style = item.get("style", 1)
             commands.append({"type": "quote", "text": text, "style": style})
 
         elif t == "bold_text":
             slot_idx += 1
-            text = slots.get(slot_idx, content)
+            text = slots.get(slot_idx)
+            if not text:
+                continue
             commands.append({"type": "bold_text", "text": text})
             commands.append({"type": "newline"})
 

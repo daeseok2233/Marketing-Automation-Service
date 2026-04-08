@@ -18,17 +18,17 @@
     "2026 지역 트렌드 분석 — 기회와 위험"
   ],
   "length": {
-    "min": 1800,
-    "max": 2500
+    "min": 2000,
+    "max": 3000
   },
   "structure": [
     {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "{region} 상권 트렌드"},
+    {"type": "heading", "size": 19, "content": "지역 상권 트렌드"},
     {"type": "text", "content": "이 지역 상권 특성과 최근 트렌드 소개 (어떤 업종이 뜨고 있는지, 왜 뜨는지) / 300자"},
-    {"type": "quote", "style": 4, "content": "이 지역 상권을 한 줄로 정의하는 문장 / 30자"},
+    {"type": "quote", "style": 1, "content": "이 지역 상권을 한 줄로 정의하는 문장 / 30자"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "{region_short}에서 많이 하는 대표 업종"},
+    {"type": "heading", "size": 19, "content": "이 지역에서 많이 하는 대표 업종"},
     {"type": "text", "content": "이 지역 대표 업종 2~3개를 소개하고, 각 업종에서 상표가 왜 중요한지 설명 / 400자"},
     {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
     {"type": "blank"},

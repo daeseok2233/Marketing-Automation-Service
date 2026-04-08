@@ -2,19 +2,18 @@
   "key": "compare",
   "name": "비교형",
   "seo": {
-    "SEO": "'셀프 vs 대행', 'A vs B' 등 비교 검색어는 전환율이 높음. 비교표 포함 시 Rich Result 가능.",
-    "AEO": "'어떤 방식이 더 나은가요?' 형식의 H2로 AI 검색 추천 답변 인용 유도. 결론을 명확히 제시."
+    "SEO": "'셀프 vs 대행', 'A vs B' 비교 검색어 공략.",
+    "AEO": "'어떤 방식이 더 나은가요?' 질문형 구조."
   },
   "writing_rules": [
-    "비교표는 반드시 포함",
     "양쪽 모두 공정하게 장단점 기술",
-    "sections[-1]에서 명확한 추천 결론 제시",
-    "숫자(비용·기간·성공률)는 구체적으로 명시"
+    "결론에서 명확한 추천 제시",
+    "비용/기간 등 수치는 구체적으로"
   ],
   "example_titles": [
-    "상표 출원 셀프 vs 변리사 대행, 2026년 기준 완전 비교",
+    "상표 출원 셀프 vs 변리사 대행, 2026년 기준 비교",
     "마드리드 국제출원 vs 개별국 출원, 어떤 게 유리할까?",
-    "상표 조사 무료 도구 vs 유료 AI, 실제 차이가 있을까?"
+    "상표 검색 무료 vs 유료 AI, 실제 차이는?"
   ],
   "length": {
     "min": 2000,
@@ -23,40 +22,26 @@
   "structure": [
     {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "어느 쪽이 나에게 맞을까?"},
-    {"type": "text", "content": "비교 대상 두 가지 명시 + 독자 공감 (3~5줄)"},
+    {"type": "heading", "size": 24, "content": "어느 쪽이 나에게 맞을까?"},
+    {"type": "text", "content": "비교 대상 두 가지를 소개하고 왜 선택이 어려운지 설명 / 200자"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "왜 선택이 어려운가"},
-    {"type": "text", "content": "각 방식의 장단점 공존 배경 (3~5줄)"},
+    {"type": "divider"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "첫 번째 방식의 장단점"},
-    {"type": "text", "content": "장점, 단점, 적합 상황 (8~10줄)"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "두 번째 방식의 장단점"},
-    {"type": "text", "content": "장점, 단점, 적합 상황 (8~10줄)"},
-    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "방식 A vs 방식 B 비교"},
+    {"type": "text", "content": "첫 번째 방식의 장점, 단점, 적합한 사람을 설명하고, 이어서 두 번째 방식의 장점, 단점, 적합한 사람도 설명 / 500자"},
+    {"type": "quote", "style": 1, "content": "두 방식의 핵심 차이를 한 줄로 요약 / 30자"},
     {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "완전 비교표"},
-    {"type": "text", "content": "| 항목 | 방식A | 방식B | 마크클라우드(마크픽) | 비용·성공률·기간·난이도·적합대상 비교표 반드시 포함"},
+    {"type": "divider"},
     {"type": "blank"},
-    {"type": "image", "content": "서비스상세 (image_mark_pick_detail.png)"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "마크뷰(MarkView) – 출원 전 필수 단계"},
-    {"type": "text", "content": "AI 선행조사, 유사발음 검색 (3~4줄)"},
+    {"type": "heading", "size": 19, "content": "마크뷰로 검색, 마크픽으로 출원"},
+    {"type": "text", "content": "마크뷰 AI 상표 검색 소개 + 마크픽 출원 대행(10만원) 안내 + 상황별 추천 결론 / 300자"},
     {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "마크픽(MarkPick) – 조사 + 출원을 한 번에"},
-    {"type": "text", "content": "순수 대행비용 10만원 (3~4줄)"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "결론: 당신에게 맞는 선택은?"},
-    {"type": "text", "content": "상황별 추천 + 마크클라우드 연결 (3~5줄)"},
-    {"type": "blank"},
-    {"type": "text", "content": "CTA: '마크뷰 블로그 보고 왔습니다' 1만원 할인"},
+    {"type": "text", "content": "'마크뷰 블로그 보고 왔습니다' 하면 1만원 할인 안내 / 50자"},
     {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
     {"type": "blank"},
-    {"type": "hashtags", "content": "10개 (비교 중심 키워드)"}
+    {"type": "hashtags", "content": "비교 키워드 포함 10개"}
   ],
   "is_local": false
 }

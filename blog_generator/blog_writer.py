@@ -59,23 +59,32 @@ def _build_prompt(tpl_data: dict, region: str, region_short: str,
         ref_parts.append(f"블로그:\n{topic['ref_blogs']}")
     ref_section = "\n\n".join(ref_parts) if ref_parts else "없음"
 
-    # 슬롯만 추출 (## 소제목, 이미지, 빈줄은 코드가 조립하므로 LLM에게 안 보여줌)
-    slot_lines = []
+    # structure 전체를 보여줌 (LLM이 글의 전체 흐름을 파악하도록)
+    template_lines = []
     slot_idx = 0
     for item in tpl_data.get("structure", []):
         t = item.get("type", "")
         content = item.get("content", "")
         content = content.replace("{region}", region or "")
         content = content.replace("{region_short}", region_short or "")
+        content = content.replace("{trending_keyword}", topic.get("angle", "").split(",")[0].strip())
 
-        if t in ("text", "quote", "bold_text"):
+        if t == "blank":
+            template_lines.append("")
+        elif t == "heading":
+            template_lines.append(f"[소제목: {content}]")
+        elif t == "divider":
+            template_lines.append("---")
+        elif t == "image":
+            template_lines.append(f"[이미지]")
+        elif t in ("text", "quote", "bold_text"):
             slot_idx += 1
-            slot_lines.append(f"[{slot_idx}] {content}")
+            template_lines.append("{" + f"{slot_idx}: {content}" + "}")
         elif t == "hashtags":
             slot_idx += 1
-            slot_lines.append(f"[{slot_idx}] 해시태그 {content}")
+            template_lines.append("{" + f"{slot_idx}: 해시태그 {content}" + "}")
 
-    slots_text = "\n".join(slot_lines)
+    slots_text = "\n".join(template_lines)
 
 # 기본값
     length = tpl_data.get("length", {})
@@ -89,14 +98,19 @@ def _build_prompt(tpl_data: dict, region: str, region_short: str,
 {SERVICE_INFO}
 
 ## 규칙
-- 친근하고 실용적인 톤
-- 허구 브랜드/사례/통계 금지
+- 친근하고 실용적인 톤. 사장님한테 말하듯이
+- 짧은 문장. 한 문장에 하나의 정보만
+- 허구 브랜드/사례/통계 금지. 참고 데이터에 없는 수치나 사실을 지어내지 말 것
+- "증가했다", "늘었다" 등 변화를 말할 때는 참고 데이터에 근거가 있을 때만
 - 과대광고("1위","최고") 금지
 - 제목 과장 금지 ("심장이 덜컥", "충격" 등)
 - 뉴스 제목 그대로 복사 금지
 - 글자수/메타 정보 본문에 언급 금지
+- AI스러운 문체 금지 ("눈에 띄게", "속속", "불어넣고 있습니다", "시점입니다", "다채로운", "선사하며", "활력을 불어넣고")
 
-아래 참고 데이터를 활용해서 템플릿의 {{}} 부분을 지시사항에 맞게 채워주세요.
+아래 참고 데이터를 활용해서 블로그 글 하나를 작성합니다.
+템플릿의 각 {{}} 부분을 글의 흐름에 맞게 자연스럽게 이어지도록 채워주세요.
+각 슬롯은 독립된 빈칸이 아니라, 하나의 블로그 글 안에서 자연스럽게 연결되어야 합니다.
 
 ## 참고 데이터
 주제: {angle}

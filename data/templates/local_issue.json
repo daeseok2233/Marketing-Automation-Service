@@ -2,55 +2,48 @@
   "key": "local_issue",
   "name": "지역 사건·이슈 분석형",
   "seo": {
-    "SEO": "지역명 + 사건 + 이유 + 영향 키워드 공략. '왜 발생했나', '무슨 문제인가' 중심.",
-    "AEO": "'이 사건 왜 일어났나요?', '어떤 영향이 있나요?' 질문형 구조로 AI 인용 유도.",
-    "GEO": "사건 요약 → 원인 → 영향 → 대응 방안 구조로 AI 요약 최적화."
+    "SEO": "지역명 + 사건 + 이유 + 영향 키워드 공략.",
+    "AEO": "'이 사건 왜 일어났나요?' 질문형 구조.",
+    "GEO": "사건 요약 → 원인 → 영향 → 대응 방안 구조."
   },
   "writing_rules": [
     "실제 사건은 반드시 사실 기반으로 작성",
-    "출처 또는 근거를 명확히 제시",
     "과도한 자극적 표현 금지",
     "분석 + 해결 중심으로 구성"
   ],
   "example_titles": [
-    "대전 ○○ 사건, 왜 발생했을까? 핵심 원인 정리",
-    "이 지역 문제, 사업자라면 반드시 알아야 합니다",
-    "최근 ○○ 이슈가 창업에 미치는 영향"
+    "홍대 상호명 분쟁 사례, 상표등록 미리 했더라면",
+    "대전 프랜차이즈 상표 도용 사건, 사업자가 알아야 할 것",
+    "최근 지역 상권 이슈가 창업에 미치는 영향"
   ],
   "length": {
-    "min": 1800,
-    "max": 2600
+    "min": 2000,
+    "max": 3000
   },
   "structure": [
     {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "최근 {region}에서 발생한 사건/이슈 소개"},
-    {"type": "text", "content": "사건 요약 — 언제, 어디서, 무엇이 발생했는지 (3~5줄)"},
+    {"type": "heading", "size": 24, "content": "최근 이슈, 무슨 일이 있었나?"},
+    {"type": "quote", "style": 1, "content": "이 사건을 한 줄로 요약하는 문장 / 30자"},
+    {"type": "text", "content": "사건/이슈 소개 (언제, 어디서, 무엇이 발생했는지) + 원인과 배경 / 300자"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "사건의 원인과 배경"},
-    {"type": "text", "content": "구조적 문제 또는 직접적 이유 분석 (4~5줄)"},
+    {"type": "divider"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "이 사건이 {region} 사업자에게 미치는 영향"},
-    {"type": "text", "content": "지역 경제, 소상공인, 소비자 등 영향 (4~5줄)"},
-    {"type": "blank"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택 — 상표 검색/확인 관련 이미지"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "사업자가 취할 수 있는 대응 방법"},
-    {"type": "text", "content": "상표·디자인 출원으로 브랜드 보호 (4~5줄)"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "마크뷰(MarkView) – 출원 전 필수 단계"},
-    {"type": "text", "content": "AI 선행조사, 유사발음 검색 (3~4줄)"},
+    {"type": "heading", "size": 19, "content": "사업자에게 미치는 영향"},
+    {"type": "text", "content": "이 사건이 지역 사업자/소상공인에게 미치는 영향 + 브랜드 보호가 필요한 이유 / 300자"},
     {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "마크픽(MarkPick) – 조사 + 출원을 한 번에"},
-    {"type": "text", "content": "순수 대행비용 10만원 (3~4줄)"},
+    {"type": "divider"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "content": "사장님, 상표등록으로 대비하세요"},
+    {"type": "quote", "style": 1, "content": "상표 미등록의 위험을 한 줄로 경고하는 문장 / 30자"},
+    {"type": "text", "content": "상표등록 필요성 + 마크뷰 AI 검색 + 마크픽 출원 대행(10만원) 안내 / 300자"},
     {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
     {"type": "blank"},
-    {"type": "text", "content": "CTA: '마크뷰 블로그 보고 왔습니다' 1만원 할인"},
-    {"type": "image", "content": "카카오상담 (image_mark_pick_kakao.png)", "fixed": true},
+    {"type": "text", "content": "'마크뷰 블로그 보고 왔습니다' 하면 1만원 할인 안내 / 50자"},
     {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
     {"type": "blank"},
-    {"type": "hashtags", "content": "10개 (지역명 + 사건 키워드 포함)"}
+    {"type": "hashtags", "content": "지역명 + 이슈 키워드 포함 10개"}
   ],
   "is_local": true
 }

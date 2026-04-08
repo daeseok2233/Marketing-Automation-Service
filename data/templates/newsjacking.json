@@ -2,21 +2,18 @@
   "key": "newsjacking",
   "name": "뉴스재킹 — 트렌딩 키워드 연결형",
   "seo": {
-    "SEO": "실시간 인기 검색어 + 상표/브랜드 키워드 조합으로 검색 유입 극대화",
-    "AEO": "트렌딩 이슈를 상표 관점에서 분석하여 AI 답변 인용 유도",
-    "GEO": "이슈 요약 → 상표 연결 → 서비스 소개 구조로 AI 요약 최적화"
+    "SEO": "실시간 인기 검색어 + 상표/브랜드 키워드 조합으로 검색 유입 극대화.",
+    "AEO": "트렌딩 이슈를 상표 관점에서 분석하여 AI 답변 인용 유도."
   },
   "writing_rules": [
     "트렌딩 키워드를 제목에 반드시 포함",
     "이슈 자체보다 상표/브랜드 연결에 초점",
-    "억지스러운 연결 금지 — 자연스럽게 '이 이슈에서 우리가 배울 점'으로",
-    "트렌딩 키워드를 본문에 5회 이상 자연스럽게 배치 (SEO)"
+    "억지스러운 연결 금지"
   ],
   "example_titles": [
-    "챔피언스리그 뮌헨 vs 레알, 두 팀의 '상표 전쟁'은 어떻게 다를까?",
-    "갤럭시 S26 출시! 삼성의 상표 보호 전략, 소상공인도 배울 점이 있다",
-    "넷플릭스 오징어게임3 흥행, '오징어게임' 상표는 누구 것일까?",
-    "BTS 컴백에 불법 굿즈 범람, 상표권 침해 어떻게 대응할까?"
+    "챔피언스리그 뮌헨 vs 레알, 두 팀의 상표 전쟁은?",
+    "넷플릭스 오징어게임3 흥행, 오징어게임 상표는 누구 것?",
+    "BTS 컴백에 불법 굿즈, 상표권 침해 어떻게 대응?"
   ],
   "length": {
     "min": 1500,
@@ -25,29 +22,20 @@
   "structure": [
     {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "{trending_keyword}가 화제! 상표와 무슨 관계?"},
-    {"type": "text", "content": "트렌딩 이슈 간단 요약 + 상표 연결 도입 (3~5줄)"},
+    {"type": "heading", "size": 24, "content": "이 이슈와 상표, 무슨 관계?"},
+    {"type": "quote", "style": 1, "content": "트렌딩 이슈를 한 줄로 요약 / 30자"},
+    {"type": "text", "content": "지금 화제인 이슈를 소개하고, 이 이슈가 상표/브랜드 보호와 어떻게 연결되는지 설명 / 300자"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "{trending_keyword}에서 배우는 상표 보호의 중요성"},
-    {"type": "text", "content": "이슈와 상표/브랜드 연결 분석 (5~7줄)"},
+    {"type": "divider"},
     {"type": "blank"},
     {"type": "heading", "size": 19, "content": "우리 브랜드도 예외가 아닙니다"},
-    {"type": "text", "content": "비슷한 상황에서 상표 출원이 필요한 이유 (3~5줄)"},
-    {"type": "blank"},
+    {"type": "text", "content": "비슷한 상황에서 상표 출원이 필요한 이유 + 마크뷰 검색 + 마크픽 출원 대행(10만원) 안내 / 300자"},
     {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
     {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "마크뷰로 내 브랜드 검색하기"},
-    {"type": "text", "content": "AI 선행조사 소개 (3~4줄)"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "마크픽으로 출원하기"},
-    {"type": "text", "content": "순수 대행비용 10만원 (3~4줄)"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
-    {"type": "blank"},
-    {"type": "text", "content": "CTA: '마크뷰 블로그 보고 왔습니다' 1만원 할인"},
+    {"type": "text", "content": "'마크뷰 블로그 보고 왔습니다' 하면 1만원 할인 안내 / 50자"},
     {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
     {"type": "blank"},
-    {"type": "hashtags", "content": "10개 (트렌딩 키워드 + 상표 키워드 조합)"}
+    {"type": "hashtags", "content": "트렌딩 키워드 + 상표 키워드 포함 10개"}
   ],
   "is_local": false
 }

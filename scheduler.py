@@ -18,12 +18,12 @@ STATE_PATH = Path("data/schedule_state.json")
 
 # 블로그별 설정
 BLOG_CONFIGS = {
-    "blog_02": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_03": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_04": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_05": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_06": {"posts_per_day": 30, "min_interval_hours": 1, "max_interval_hours": 2},
-    "blog_07": {"posts_per_day": 40, "min_interval_min": 30, "max_interval_min": 42},
+    "blog_02": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_03": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_04": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_05": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_06": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_07": {"posts_per_day": 40, "min_interval_min": 20, "max_interval_min": 35},
 }
 
 
