@@ -104,7 +104,7 @@ def _build_prompt(tpl_data: dict, region: str, region_short: str,
 {ref_section}
 
 ## 템플릿
-제목: {{30자 이내, 핵심 키워드 포함}}
+제목: {{30자 이내. [1]에서 다루는 행사명/핵심 키워드를 제목에 반드시 포함}}
 {slots_text}
 
 ## 응답 형식
@@ -194,67 +194,6 @@ def _parse_response(raw: str, tpl_data: dict = None) -> dict:
     return {"title": title, "slots": slots}
 
 
-def _assemble_body(tpl_data: dict, slots: dict, region: str, region_short: str,
-                   blog_images: list, thumb_url: str = "") -> str:
-    """template structure + 슬롯 텍스트 → 최종 body 조립."""
-    image_list = [img for img in blog_images]
-    img_idx = [0]
-
-    def _pick_image():
-        if img_idx[0] < len(image_list):
-            img = image_list[img_idx[0]]
-            img_idx[0] += 1
-            return img["path"]
-        return ""
-
-    lines = []
-    slot_idx = 0
-
-    for item in tpl_data.get("structure", []):
-        t = item.get("type", "")
-        content = item.get("content", "")
-        content = content.replace("{region}", region or "")
-        content = content.replace("{region_short}", region_short or "")
-
-        if t == "blank":
-            lines.append("")
-        elif t == "divider":
-            lines.append("---")
-        elif t == "heading":
-            lines.append(f"## {content}")
-        elif t == "text":
-            slot_idx += 1
-            lines.append(slots.get(slot_idx, content))
-        elif t == "quote":
-            slot_idx += 1
-            lines.append(f"> {slots.get(slot_idx, content)}")
-        elif t == "bold_text":
-            slot_idx += 1
-            lines.append(f"**{slots.get(slot_idx, content)}**")
-        elif t == "hashtags":
-            slot_idx += 1
-            text = slots.get(slot_idx, "")
-            if text and not text.startswith("#"):
-                text = " ".join(f"#{w.strip().lstrip('#')}" for w in text.split() if w.strip())
-            lines.append(text)
-        elif t == "image":
-            if "썸네일" in content:
-                if thumb_url:
-                    lines.append(f"[썸네일 이미지: IMGUR:{thumb_url}]")
-                else:
-                    lines.append("[썸네일 이미지]")
-            elif "쿠폰" in content or "coupon" in content.lower():
-                lines.append("[서비스 이미지: data/image/event/image_mark_pick_coupon.png]")
-            elif item.get("fixed"):
-                lines.append(f"[서비스 이미지: {content}]")
-            else:
-                path = _pick_image()
-                if path:
-                    lines.append(f"[서비스 이미지: {path}]")
-
-    return "\n".join(lines)
-
-
 def write_local_blog(topic: dict, template_name: str = "local_trend") -> dict:
     """블로그 글 1개를 생성한다."""
     region = topic.get("region", "")
@@ -312,4 +251,5 @@ def write_local_blog(topic: dict, template_name: str = "local_trend") -> dict:
         "_slots": parsed["slots"],
         "_blog_images": blog_images,
         "_thumb_url": thumb_url,
+        "_thumb_path": str(thumb_path) if thumb_path else "",
     }

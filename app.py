@@ -265,12 +265,19 @@ with tab_publish:
         st.warning("⬆️ 2단계를 먼저 실행하세요")
     else:
         blog = st.session_state.step3_result
-        body = blog.get("body", "")
         template_name = st.session_state.agent_result.get("template", "local_trend")
 
-        # 포맷 변환
-        from publisher.blog_formatter import markdown_to_commands
-        commands = markdown_to_commands(body, template_name=template_name, blog_id=selected_blog)
+        # structure → Playwright 명령 변환
+        from publisher.blog_formatter import structure_to_commands
+        commands = structure_to_commands(
+            tpl_data=blog.get("_tpl_data", {}),
+            slots=blog.get("_slots", {}),
+            blog_images=blog.get("_blog_images", []),
+            blog_id=selected_blog,
+            thumb_url=blog.get("_thumb_path", ""),
+            region=blog.get("region", ""),
+            region_short=blog.get("region_short", ""),
+        )
 
         # 입력 표시
         with st.expander("📥 입력 데이터"):

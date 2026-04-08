@@ -130,34 +130,17 @@ def publish_one(blog_id: str, use_agent: bool = True) -> dict | None:
 
     # 글 생성
     blog = write_local_blog(topic, template_name=template)
-    body_len = len(blog.get("body", ""))
+    body_len = sum(len(str(v)) for v in blog.get("_slots", {}).values())
 
-    # 품질 체크: 짧거나 끊긴 글 재생성
-    def _is_valid(blog_data):
-        body = blog_data.get("body", "")
-        if len(body) < 1000:
-            return False, "짧음"
-        # 끊긴 글 감지: 마지막 줄이 1~3글자로 끝남
-        lines = [l.strip() for l in body.split("\n") if l.strip()]
-        if lines:
-            last = lines[-1]
-            if len(last) <= 3 and not last.startswith("#") and not last.startswith("["):
-                return False, f"끊김(\"{last}\")"
-        # 해시태그 없으면 끊긴 것
-        if "#" not in body.split("\n")[-1] if lines else "":
-            has_hashtag = any("#" in l and l.count("#") >= 3 for l in lines)
-            if not has_hashtag:
-                return False, "해시태그 없음(끊김)"
-        return True, "OK"
-
-    valid, reason = _is_valid(blog)
+    from blog_generator.quality_checker import check_quality
+    valid, reason = check_quality(blog)
     for retry in range(3):
         if valid:
             break
         print(f"  [{blog_id}] {reason} — 재생성 ({retry + 1})...")
         blog = write_local_blog(topic, template_name=template)
-        body_len = len(blog.get("body", ""))
-        valid, reason = _is_valid(blog)
+        body_len = sum(len(str(v)) for v in blog.get("_slots", {}).values())
+        valid, reason = check_quality(blog)
 
     if not valid:
         print(f"  [{blog_id}] 품질 미달 ({reason}, {len(blog.get('body', ''))}자) — 스킵")

@@ -17,8 +17,8 @@
     "브랜드 이름 짓기 전에 꼭 알아야 할 것"
   ],
   "length": {
-    "min": 1500,
-    "max": 2000
+    "min": 2000,
+    "max": 3000
   },
   "structure": [
     {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},

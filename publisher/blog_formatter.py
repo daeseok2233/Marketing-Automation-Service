@@ -147,13 +147,16 @@ def structure_to_commands(tpl_data: dict, slots: dict, blog_images: list,
 
         elif t == "image":
             if "썸네일" in content:
-                # 썸네일 — 최신 생성된 파일 사용
-                thumb_dir = Path("data/generated/thumbnails")
-                if thumb_dir.exists():
-                    thumbs = sorted(thumb_dir.glob("*.png"),
-                                    key=lambda f: f.stat().st_mtime, reverse=True)
-                    if thumbs:
-                        commands.append({"type": "image", "path": str(thumbs[0]), "link": ""})
+                # 썸네일 — 전달받은 경로 우선, 없으면 최신 파일
+                if thumb_url and Path(thumb_url).exists():
+                    commands.append({"type": "image", "path": thumb_url, "link": ""})
+                else:
+                    thumb_dir = Path("data/generated/thumbnails")
+                    if thumb_dir.exists():
+                        thumbs = sorted(thumb_dir.glob("*.png"),
+                                        key=lambda f: f.stat().st_mtime, reverse=True)
+                        if thumbs:
+                            commands.append({"type": "image", "path": str(thumbs[0]), "link": ""})
             elif "쿠폰" in content or "coupon" in content.lower():
                 path = "data/image/event/image_mark_pick_coupon.png"
                 filename = Path(path).name

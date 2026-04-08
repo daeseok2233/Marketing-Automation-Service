@@ -23,26 +23,22 @@
   "structure": [
     {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
     {"type": "blank"},
-    {"type": "heading", "size": 24, "content": "{region} 행사 소개"},
-    {"type": "quote", "style": 4, "content": "이 행사를 한 줄로 요약하는 문장 / 30자"},
+    {"type": "heading", "size": 19, "content": "{region} 행사 소개"},
     {"type": "text", "content": "행사 소개 (언제, 어디서, 누가 주최, 참여 방법) / 200자"},
     {"type": "blank"},
     {"type": "heading", "size": 19, "content": "{region_short} 상권, 지금 이렇게 활발합니다"},
     {"type": "text", "content": "이 행사가 지역 상권에 미치는 영향 (유동인구 증가, 신규 가게 증가, 경쟁 심화) / 200자"},
     {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
     {"type": "blank"},
-    {"type": "divider"},
-    {"type": "blank"},
     {"type": "heading", "size": 19, "content": "{region_short} 사장님, 상표등록은 하셨나요?"},
-    {"type": "quote", "style": 3, "content": "상표 미등록의 위험을 한 줄로 경고하는 문장 / 30자"},
     {"type": "text", "content": "상표등록 필요성 경고 + 마크뷰로 상호명 검색 + 마크픽으로 출원 대행(10만원) 안내 / 300자"},
-    {"type": "blank"},
-    {"type": "divider"},
     {"type": "blank"},
     {"type": "text", "content": "'마크뷰 블로그 보고 왔습니다' 하면 1만원 할인 안내 / 50자"},
     {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
     {"type": "blank"},
     {"type": "hashtags", "content": "지역명 + 행사명 포함 10개"}
+    +
+    
   ],
   "is_local": true
 }

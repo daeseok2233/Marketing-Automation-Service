@@ -160,7 +160,7 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
             slots=blog_data["_slots"],
             blog_images=blog_data.get("_blog_images", []),
             blog_id=cookie_blog_id,
-            thumb_url=blog_data.get("_thumb_url", ""),
+            thumb_url=blog_data.get("_thumb_path", ""),
             region=blog_data.get("region", ""),
             region_short=blog_data.get("region_short", ""),
         )
@@ -266,35 +266,50 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
                 _change_font_size(page, 15)
 
             elif t == "quote":
-                # 인용구 삽입: 네이버 에디터 인용구 버튼
+                # 인용구: 버튼 클릭 → 빈 블록 생성 → 스타일 선택 → 텍스트 입력 → 탈출
                 try:
-                    quote_btn = page.locator("button.se-quote-toolbar-button, button[data-name='quotation']").first
+                    quote_btn = page.locator("button[data-name='quotation'].se-document-toolbar-icon-select-button").first
                     if quote_btn.is_visible(timeout=2000):
                         quote_btn.click()
-                        _random_delay(0.5, 1)
-                        # 스타일 선택 (style 1~5)
-                        style = cmd.get("style", 3)
-                        style_btn = page.locator(f".se-popup-quote-style button >> nth={style - 1}")
-                        if style_btn.is_visible(timeout=1000):
-                            style_btn.click()
+                        _random_delay(1, 2)
+
+                        # 스타일 선택
+                        style = cmd.get("style", 1)
+                        style_btns = page.locator("button[class*='quotation-group']")
+                        if style_btns.count() >= style:
+                            style_btns.nth(style - 1).click()
                             _random_delay(0.5, 1)
-                    page.keyboard.type(cmd["text"], delay=random.randint(3, 10))
-                    page.keyboard.press("Enter")
-                    page.keyboard.press("Enter")
-                    _random_delay(0.3, 0.5)
+
+                        # 텍스트 입력
+                        page.keyboard.type(cmd["text"], delay=random.randint(3, 10))
+                        _random_delay(0.3, 0.5)
+
+                        # 인용구 밖으로 탈출 (ArrowDown)
+                        for _ in range(5):
+                            page.keyboard.press("ArrowDown")
+                        _random_delay(0.3, 0.5)
+                        page.keyboard.press("Enter")
+                    else:
+                        page.keyboard.type(cmd["text"], delay=random.randint(3, 10))
+                        page.keyboard.press("Enter")
                 except Exception as e:
-                    # 인용구 버튼 실패 시 일반 텍스트로 대체
                     page.keyboard.type(cmd["text"], delay=random.randint(3, 10))
                     page.keyboard.press("Enter")
                     print(f"  [Naver] 인용구 실패 → 텍스트 대체: {e}")
 
             elif t == "divider":
-                # 구분선 삽입: 네이버 에디터 구분선 버튼
+                # 구분선 삽입: 옵션 드롭다운 → line1 (가장 긴 실선) 선택
                 try:
-                    line_btn = page.locator("button.se-horizontal-line-toolbar-button, button[data-name='horizontalLine']").first
-                    if line_btn.is_visible(timeout=2000):
-                        line_btn.click()
+                    hr_dropdown = page.locator("button[data-name='horizontal-line'].se-document-toolbar-select-option-button").first
+                    if hr_dropdown.is_visible(timeout=2000):
+                        hr_dropdown.click()
                         _random_delay(0.5, 1)
+                        hr_line1 = page.locator("button[data-value='line1']").first
+                        if hr_line1.is_visible(timeout=1000):
+                            hr_line1.click()
+                            _random_delay(0.5, 1)
+                        else:
+                            page.keyboard.press("Escape")
                     else:
                         page.keyboard.press("Enter")
                 except Exception:
@@ -445,19 +460,16 @@ def publish_to_naver(blog_data: dict, blog_id: str = "", template_name: str = "l
 def _change_font_size(page, size: int):
     """네이버 에디터 글자 크기 변경. size: 11,13,15,16,19,24,28,30,34,38"""
     try:
-        # 글자 크기 버튼 클릭
-        size_btn = page.query_selector(".se-font-size-code-toolbar-button")
-        if size_btn:
+        size_btn = page.locator(".se-font-size-code-toolbar-button").first
+        if size_btn.is_visible(timeout=1000):
             size_btn.click()
             _random_delay(0.5, 1)
 
-            # data-value="fs19" 형식으로 선택
-            size_option = page.query_selector(f"button[data-value='fs{size}']")
-            if size_option and size_option.is_visible():
+            size_option = page.locator(f"button[data-value='fs{size}']").first
+            if size_option.is_visible(timeout=1000):
                 size_option.click()
                 _random_delay(0.3, 0.5)
             else:
-                # 드롭다운 닫기
                 page.keyboard.press("Escape")
     except Exception as e:
         print(f"  [Naver] 글자 크기 변경 실패: {e}")
