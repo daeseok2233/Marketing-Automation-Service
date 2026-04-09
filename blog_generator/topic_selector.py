@@ -46,7 +46,7 @@ def _load_collected_summary() -> str:
 
 def select_topic() -> dict:
     """주제를 선정하고 결과를 반환한다.
-
+    
     Returns:
         {
             "topic": "선정된 주제",
