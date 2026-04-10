@@ -222,12 +222,15 @@ def make_thumbnail(
     draw = ImageDraw.Draw(canvas)
     draw.rectangle([0, 0, 949, 949], outline=BORDER_COLOR, width=BORDER_WIDTH)
 
-    # ── 저장 ──
+    # ── 임시 저장 (발행 후 삭제) ──
+    import tempfile
     if not output_name:
         output_name = f"thumbnail_{int(time.time())}.png"
-    output_path = OUTPUT_DIR / output_name
+    tmp_dir = Path(tempfile.gettempdir()) / "blog_thumbnails"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    output_path = tmp_dir / output_name
     canvas.convert("RGB").save(output_path, "PNG")
-    print(f"  [Thumbnail] 저장: {output_path}")
+    print(f"  [Thumbnail] 생성: {output_path}")
 
     return str(output_path)
 
