@@ -659,7 +659,7 @@ if st.session_state.get("plan_results"):
 
             with st.spinner("네이버 블로그에 발행 중..."):
                 result = subprocess.run(
-                    ["python", "-X", "utf8", "publish_v2.py", tmp.name],
+                    ["python", "-X", "utf8", "publish.py", tmp.name],
                     capture_output=True, text=True, timeout=180, encoding="utf-8",
                 )
                 Path(tmp.name).unlink(missing_ok=True)

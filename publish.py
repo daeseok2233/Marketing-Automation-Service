@@ -3,7 +3,7 @@
 app_collect.py에서 호출. Playwright로 네이버 블로그에 발행.
 structure의 size/type에 따라 글자크기, 이미지 배치 제어.
 
-Usage: python publish_v2.py <json_file>
+Usage: python publish.py <json_file>
 """
 
 import json
@@ -19,7 +19,7 @@ sys.stderr.reconfigure(encoding="utf-8")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python publish_v2.py <json_file>", file=sys.stderr)
+        print("Usage: python publish.py <json_file>", file=sys.stderr)
         sys.exit(1)
 
     data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
