@@ -1,0 +1,51 @@
+{
+  "_comment": "상표를 잘 챙겨 성공한 브랜드 사례. 분쟁의 반대편 — 긍정적 톤으로 따라할 만한 교훈 제시.",
+  "key": "success_story",
+  "name": "성공 사례 분석형",
+  "seo": {
+    "SEO": "'~성공 비결', '~브랜드 전략', '~성장 사례' 등 사례 검색어 커버. 브랜드명/수치를 제목에 노출.",
+    "AEO": "'어떻게 성공했나요?', '핵심 전략은 뭐였나요?' 형식의 H2로 AI 검색 인용 유도.",
+    "GEO": "사례 소개 → 성공 비결 → 상표 보호 관점 분석 → 따라하는 방법 구조."
+  },
+  "writing_rules": [
+    "가능하면 실제 브랜드명을 사용, 미확인 시 'A브랜드' 등으로 익명화",
+    "단순 자랑이 아니라 따라할 수 있는 구체적 교훈 강조",
+    "상표·브랜드 보호가 성공에 기여한 측면을 명확히 도출",
+    "수치(매출·등록 수·해외 진출 국가 수 등)는 출처와 함께 인용",
+    "서비스 홍보는 sections[-1]에서 1회"
+  ],
+  "example_titles": [
+    "이 카페가 5년간 4개 상표로 보호한 비결",
+    "K-뷰티 OO 브랜드, 해외 진출 성공기",
+    "스타트업이 상표권으로 100억 투자 유치한 사례"
+  ],
+  "length": {
+    "min": 2000,
+    "max": 3000
+  },
+  "structure": [
+    {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
+    {"type": "blank"},
+    {"type": "text", "size": 15, "slot": "도입"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "slot": "소제목1"},
+    {"type": "text", "size": 15, "slot": "본문1"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "slot": "소제목2"},
+    {"type": "text", "size": 15, "slot": "본문2"},
+    {"type": "blank"},
+    {"type": "text", "size": 15, "slot": "QA"},
+    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "slot": "소제목3"},
+    {"type": "text", "size": 15, "slot": "본문3"},
+    {"type": "blank"},
+    {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
+    {"type": "blank"},
+    {"type": "image", "content": "카카오상담 (image_mark_pick_kakao.png)", "fixed": true},
+    {"type": "blank"},
+    {"type": "hashtags", "slot": "해시태그"}
+  ],
+  "is_local": false,
+  "prompt_template": "제목: {30자 이내, 브랜드명 또는 핵심 키워드 포함}\n\n{도입: 어떤 브랜드가 어떻게 성공했는지 한눈에 / 150자}\n\n소제목: {성공의 핵심 비결}\n{본문: 브랜드의 전략과 성장 과정 상세 / 300자}\n\n소제목: {상표·브랜드 보호 관점에서 본 교훈}\n{본문: 상표 등록·관리가 성공에 어떻게 기여했는지 / 200자}\n\n{Q&A: 따라할 수 있는 방법에 대한 질문 1~2개 + 답변 / 200자}\n\n소제목: {이렇게 따라하세요}\n{본문: 마크뷰/마크패스/마크픽 활용 안내 / 200자}\n\n{해시태그 10개}"
+}

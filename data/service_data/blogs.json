@@ -15,10 +15,9 @@
       "name": "상표출원, 상표등록, 중간사건 Blog",
       "theme": "실무 정보 중심의 명확하고 신뢰감 있는 블로그. 상표 출원 절차·거절 대응·중간사건 등 실제 업무에 필요한 내용을 단계별로 안내. 출원 진행 중인 사업자·IP 담당자 대상.",
       "templates": [
-        "howto",
-        "checklist",
-        "compare",
-        "newsjacking"
+        "policy",
+        "newsjacking",
+        "event"
       ],
       "naver_id": "searan0131",
       "blog_url": "m_arkpick"
@@ -27,7 +26,9 @@
       "name": "정상일 변리사 특허, 디자인, 상표 Blog",
       "theme": "변리사 개인 전문 블로그. 신뢰감 있는 전문가 문체로 복잡한 IP 업무를 의뢰인 눈높이에서 쉽게 설명. 특허·디자인·상표 출원을 검토 중인 기업·개인 대상.",
       "templates": [
-        "column",
+        "policy",
+        "statistics",
+        "success_story",
         "dispute_report",
         "warning",
         "newsjacking"

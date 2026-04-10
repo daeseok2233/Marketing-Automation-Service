@@ -1,0 +1,51 @@
+{
+  "_comment": "공식 통계·리포트 데이터를 인용해 트렌드와 시사점을 정리. 특허청·산업계 자료 기반.",
+  "key": "statistics",
+  "name": "통계·데이터 분석형",
+  "seo": {
+    "SEO": "'~증가', '~돌파', '~통계', '~리포트' 등 수치 검색어 커버. 핵심 수치를 제목에 노출.",
+    "AEO": "'얼마나 늘었나요?', '어떤 분야가 많아요?' 형식의 H2로 AI 검색 인용 유도.",
+    "GEO": "수치 요약 → 데이터 분석 → 시사점 → 추천 전략 구조."
+  },
+  "writing_rules": [
+    "모든 수치는 출처(특허청·KIPRIS·통계청 등)와 함께 인용",
+    "추세 해석 시 가정과 사실을 명확히 구분",
+    "단순 수치 나열이 아니라 사업자 관점에서 의미 부여",
+    "비교 가능한 과거 수치나 산업 평균을 함께 제시",
+    "서비스 홍보는 sections[-1]에서 1회"
+  ],
+  "example_titles": [
+    "2025년 상표 출원 50만건 돌파, 어떤 분야가 늘었나?",
+    "스타트업 상표 등록률 30% 증가, 그 의미는?",
+    "K-뷰티 해외 상표 출원, 5년간 3배 증가"
+  ],
+  "length": {
+    "min": 2000,
+    "max": 3000
+  },
+  "structure": [
+    {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
+    {"type": "blank"},
+    {"type": "text", "size": 15, "slot": "도입"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "slot": "소제목1"},
+    {"type": "text", "size": 15, "slot": "본문1"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "slot": "소제목2"},
+    {"type": "text", "size": 15, "slot": "본문2"},
+    {"type": "blank"},
+    {"type": "text", "size": 15, "slot": "QA"},
+    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
+    {"type": "blank"},
+    {"type": "heading", "size": 19, "slot": "소제목3"},
+    {"type": "text", "size": 15, "slot": "본문3"},
+    {"type": "blank"},
+    {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
+    {"type": "blank"},
+    {"type": "image", "content": "카카오상담 (image_mark_pick_kakao.png)", "fixed": true},
+    {"type": "blank"},
+    {"type": "hashtags", "slot": "해시태그"}
+  ],
+  "is_local": false,
+  "prompt_template": "제목: {30자 이내, 핵심 수치 포함}\n\n{도입: 통계/리포트의 핵심 수치와 의미 / 150자}\n\n소제목: {데이터 분석}\n{본문: 수치·트렌드를 구체적으로 설명, 출처 인용 / 300자}\n\n소제목: {사업자에게 주는 시사점}\n{본문: 데이터를 사업자 관점에서 해석 / 200자}\n\n{Q&A: 데이터 해석에 대한 질문 1~2개 + 답변 / 200자}\n\n소제목: {이런 전략을 추천}\n{본문: 마크뷰/마크패스/마크픽 활용 안내 / 200자}\n\n{해시태그 10개}"
+}

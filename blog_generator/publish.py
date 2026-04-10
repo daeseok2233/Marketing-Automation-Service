@@ -1,35 +1,104 @@
-"""structure + slots 기반 발행 스크립트.
+"""네이버 블로그 발행 — UI + Playwright 발행 로직 통합.
 
-app_collect.py에서 호출. Playwright로 네이버 블로그에 발행.
-structure의 size/type에 따라 글자크기, 이미지 배치 제어.
+두 가지 역할:
+  1) `from blog_generator.publish import render` → Streamlit UI
+  2) `python -m blog_generator.publish <json_file>` → 실제 Playwright 발행 (subprocess 모드)
 
-Usage: python publish.py <json_file>
+render()가 발행 버튼을 그리고, 클릭 시 자기 자신을 subprocess로 호출한다.
+이 패턴이 필요한 이유: Streamlit 이벤트 루프와 Playwright sync API가 충돌하기 때문.
 """
 
 import json
-import os
+import subprocess
 import sys
-import time
-import random
+import tempfile
 from pathlib import Path
 
-os.environ["PYTHONIOENCODING"] = "utf-8"
-sys.stdout.reconfigure(encoding="utf-8")
-sys.stderr.reconfigure(encoding="utf-8")
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python publish.py <json_file>", file=sys.stderr)
-        sys.exit(1)
+# ════════════════════════════════════════════════════════════
+#  Streamlit UI 진입점
+# ════════════════════════════════════════════════════════════
+def render():
+    """generate 단계 결과를 네이버 블로그에 발행."""
+    import streamlit as st  # lazy import (subprocess 모드에서는 불필요)
 
-    data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    st.divider()
+    st.subheader("네이버 블로그 발행")
+
+    if not st.session_state.get("gen_result"):
+        st.info("먼저 글 생성을 완료하세요.")
+        return
+
+    plan_blog = st.session_state.get("plan_blog", "blog_02")
+    title = st.session_state.get("gen_title", "")
+    slots = st.session_state.get("gen_slots", {})
+    structure = st.session_state.get("gen_structure", [])
+    gen_template = st.session_state.get("gen_template", "")
+
+    blogs_json = json.loads(Path("data/service_data/blogs.json").read_text(encoding="utf-8"))
+    blog_info = blogs_json["blogs"].get(plan_blog, {})
+    blog_url = blog_info.get("blog_url", "")
+
+    st.warning(f"발행 대상: **{plan_blog}** (blog.naver.com/{blog_url})")
+
+    if not st.button("네이버 블로그에 발행", type="primary", key="publish_gen"):
+        return
+
+    publish_data = {
+        "title": title,
+        "slots": slots,
+        "structure": structure,
+        "blog_id": blog_url,
+        "cookie_blog_id": plan_blog,
+        "gen_template": gen_template,
+    }
+
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8")
+    json.dump(publish_data, tmp, ensure_ascii=False)
+    tmp.close()
+
+    with st.spinner("네이버 블로그에 발행 중..."):
+        # 자기 자신을 subprocess로 실행 (Streamlit/Playwright asyncio 충돌 회피)
+        result = subprocess.run(
+            [sys.executable, "-X", "utf8", "-m", "blog_generator.publish", tmp.name],
+            capture_output=True, text=True, timeout=180, encoding="utf-8",
+        )
+        Path(tmp.name).unlink(missing_ok=True)
+
+        if result.returncode == 0 and result.stdout.strip():
+            url = result.stdout.strip().split("\n")[-1]
+            if url.startswith("http"):
+                st.success(f"발행 완료! {url}")
+                st.balloons()
+            else:
+                st.error(f"발행 실패 — {url}")
+        else:
+            st.error(f"발행 실패 — {result.stderr[:200] if result.stderr else '알 수 없는 오류'}")
+
+
+# ════════════════════════════════════════════════════════════
+#  Playwright 발행 로직 (subprocess 진입점)
+# ════════════════════════════════════════════════════════════
+def _do_publish(data: dict) -> str:
+    """발행 데이터(dict)로 네이버 블로그에 실제 발행. URL 반환 (실패 시 빈 문자열).
+
+    스케줄러/CLI/UI 모두 이 함수를 사용한다.
+    """
+    import csv
+    import os
+    import random
+    import re
+    import time
+
+    from blog_generator.naver_session import get_session, _check_login, _random_delay
+    from blog_generator.slack_notify import notify_success, notify_fail, notify_login_expired
+    from blog_generator.thumbnail_maker import make_thumbnail
+
     title = data["title"]
     slots = data["slots"]
     structure = data["structure"]
     blog_id = data["blog_id"]
     cookie_blog_id = data["cookie_blog_id"]
-
-    from publisher.naver_blog import get_session, _check_login, _random_delay
 
     context, page = get_session(cookie_blog_id)
 
@@ -37,9 +106,10 @@ if __name__ == "__main__":
         logged_in = _check_login(page, blog_url=blog_id)
         if not logged_in:
             print(f"  [Naver] 로그인 실패! python save_naver_cookies.py {cookie_blog_id}")
-            sys.exit(1)
+            notify_login_expired(cookie_blog_id)
+            return ""
 
-        # 글쓰기 페이지
+        # 글쓰기 페이지로 이동
         for sel in [".se-popup-button-cancel", ".se-help-panel-close-button"]:
             try:
                 el = page.query_selector(sel)
@@ -77,7 +147,7 @@ if __name__ == "__main__":
         body_area.click()
         _random_delay(1, 2)
 
-        # 글자크기 변경 함수
+        # ── 헬퍼 함수들 ──
         def change_font_size(size):
             try:
                 btn = page.locator(".se-font-size-code-toolbar-button").first
@@ -93,7 +163,6 @@ if __name__ == "__main__":
             except Exception:
                 pass
 
-        # 이미지 업로드 함수
         def upload_image(img_path):
             abs_path = os.path.abspath(img_path)
             if not os.path.exists(abs_path):
@@ -107,7 +176,6 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"  [Naver] 이미지 실패: {e}")
 
-        # 이미지 링크 삽입 함수
         def add_link_to_image(url):
             try:
                 images = page.query_selector_all(".se-image-resource")
@@ -127,15 +195,13 @@ if __name__ == "__main__":
                                 confirm.click()
                                 _random_delay(0.5, 1)
                                 print(f"  [Naver] 링크: {url[:30]}")
-                    # 본문 영역 다시 클릭
-                    body_area = page.locator(".se-component.se-text .se-text-paragraph").last
-                    body_area.click()
+                    body = page.locator(".se-component.se-text .se-text-paragraph").last
+                    body.click()
                     _random_delay(0.3, 0.5)
             except Exception as e:
                 print(f"  [Naver] 링크 삽입 실패: {e}")
 
-        # 이미지 목록 + 링크 로드
-        import csv
+        # ── 이미지 목록 + 링크 로드 ──
         blog_images = []
         image_links = {}
         img_csv = Path("data/image/image_list.csv")
@@ -149,7 +215,6 @@ if __name__ == "__main__":
                     if name:
                         image_links[name] = link
 
-        # 블로그별 링크 매핑
         blog_links = {}
         blog_links_path = Path("data/image/blog_links.json")
         if blog_links_path.exists():
@@ -172,7 +237,7 @@ if __name__ == "__main__":
 
         img_idx = 0
 
-        # structure 기반 명령 실행
+        # ── structure 기반 명령 실행 ──
         for item in structure:
             t = item.get("type", "")
             slot = item.get("slot", "")
@@ -186,16 +251,13 @@ if __name__ == "__main__":
             elif t == "image":
                 img_path = ""
                 if "썸네일" in content:
-                    # 제목 기반으로 썸네일 생성 (이모지 제거)
-                    from blog_generator.thumbnail_maker import make_thumbnail
-                    import re as _re
-                    clean_title = _re.sub(r'[^\w\s가-힣a-zA-Z0-9.,!?~·\-\'\"()%]', '', title).strip()
+                    clean_title = re.sub(r'[^\w\s가-힣a-zA-Z0-9.,!?~·\-\'\"()%]', '', title).strip()
                     thumb_path = make_thumbnail(
                         main_title=clean_title,
                         sub_title_1="",
                         sub_title_2="",
                         region="",
-                        output_name=f"thumb_{_re.sub(r'[/\\\\|:*?\"<>]', '_', title[:20])}.png",
+                        output_name=f"thumb_{re.sub(r'[/\\\\|:*?\"<>]', '_', title[:20])}.png",
                     )
                     if thumb_path:
                         img_path = thumb_path
@@ -248,7 +310,7 @@ if __name__ == "__main__":
         print(f"  [Naver] 본문 입력 완료")
         _random_delay(2, 3)
 
-        # 발행 버튼 (여러 셀렉터 시도)
+        # ── 발행 버튼 ──
         publish_btn = None
         for sel in [
             "button:has-text('발행')",
@@ -266,13 +328,14 @@ if __name__ == "__main__":
         if not publish_btn:
             print("  [Naver] 발행 버튼 찾기 실패", file=sys.stderr)
             page.screenshot(path="data/generated/naver_no_publish_btn.png")
-            sys.exit(1)
+            notify_fail(blog_id=cookie_blog_id, error="발행 버튼 찾기 실패", title=title)
+            return ""
 
         publish_btn.click()
         print(f"  [Naver] 발행 버튼 클릭")
         _random_delay(3, 5)
 
-        # 발행 확인 다이얼로그
+        # ── 발행 확인 다이얼로그 ──
         dialog_btn = None
         for sel in [
             ".se-popup-button-confirm",
@@ -292,16 +355,73 @@ if __name__ == "__main__":
             print(f"  [Naver] 발행 확인 클릭")
         _random_delay(3, 5)
 
-        # URL 확인 (최대 15초 대기)
+        # ── URL 확인 ──
+        published_url = ""
         for _ in range(5):
             time.sleep(3)
             current_url = page.url
             if "postwrite" not in current_url and blog_id in current_url:
-                print(current_url)
+                published_url = current_url
                 break
-        else:
-            print(f"https://blog.naver.com/{blog_id}")
+        if not published_url:
+            published_url = f"https://blog.naver.com/{blog_id}"
+
+        print(published_url)
+        notify_success(
+            blog_id=cookie_blog_id, title=title,
+            url=published_url, template=data.get("gen_template", ""),
+        )
+        return published_url
 
     except Exception as e:
         print(f"발행 실패: {e}", file=sys.stderr)
+        notify_fail(blog_id=cookie_blog_id, error=str(e), title=title)
+        return ""
+
+
+def publish_post(post: dict, blog_id: str, cookie_blog_id: str) -> str | None:
+    """스케줄러용 발행 진입점.
+
+    Args:
+        post: {title, slots, structure, template} (generate_post() 반환값)
+        blog_id: 네이버 블로그 URL ID (예: "m_arkpick")
+        cookie_blog_id: 쿠키 파일 식별자 (예: "blog_02")
+
+    Returns:
+        발행 성공 시 URL, 실패 시 None
+    """
+    full_data = {
+        "title": post["title"],
+        "slots": post["slots"],
+        "structure": post["structure"],
+        "blog_id": blog_id,
+        "cookie_blog_id": cookie_blog_id,
+        "gen_template": post.get("template", ""),
+    }
+    url = _do_publish(full_data)
+    return url if url else None
+
+
+def _run_publish(json_path: str):
+    """CLI 진입점 — JSON 파일에서 데이터를 읽고 _do_publish 호출."""
+    data = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    url = _do_publish(data)
+    if not url:
         sys.exit(1)
+
+
+# ════════════════════════════════════════════════════════════
+#  CLI 진입점 — `python -m blog_generator.publish <json_file>`
+# ════════════════════════════════════════════════════════════
+if __name__ == "__main__":
+    import os
+
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
+    if len(sys.argv) < 2:
+        print("Usage: python -m blog_generator.publish <json_file>", file=sys.stderr)
+        sys.exit(1)
+
+    _run_publish(sys.argv[1])

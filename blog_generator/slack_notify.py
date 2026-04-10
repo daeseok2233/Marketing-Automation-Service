@@ -1,7 +1,11 @@
-"""슬랙 알림 — 블로그 발행 성공/실패 알림."""
+"""슬랙 알림 — 블로그 발행 성공/실패/쿠키만료 알림.
+
+SLACK_WEBHOOK_URL 환경변수에 Webhook URL을 설정하면 자동으로 알림 전송.
+미설정 시 모든 함수가 조용히 무시된다.
+"""
 
 import os
-import json
+
 import requests
 from dotenv import load_dotenv
 
@@ -10,17 +14,13 @@ load_dotenv()
 WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 
 
-def notify_success(blog_id: str, title: str, url: str = "", template: str = "", region: str = "", tone: str = ""):
+def notify_success(blog_id: str, title: str, url: str = "", template: str = ""):
     """발행 성공 알림."""
     if not WEBHOOK_URL:
         return
     fields = f"*블로그*: {blog_id}"
     if template:
         fields += f"  |  *템플릿*: {template}"
-    if region:
-        fields += f"  |  *지역*: {region}"
-    if tone:
-        fields += f"  |  *톤*: {tone}"
     if url:
         fields += f"\n<{url}|글 보기>"
     text = f":white_check_mark: *발행 성공*\n{fields}\n*제목*: {title}"
@@ -39,15 +39,22 @@ def notify_fail(blog_id: str, error: str = "", title: str = ""):
     _send(text)
 
 
-def notify_daily_summary(results: list, date: str = ""):
-    """하루 발행 요약 알림."""
+def notify_login_expired(blog_id: str):
+    """쿠키 만료 알림."""
     if not WEBHOOK_URL:
         return
+    text = f":rotating_light: *로그인 만료* — {blog_id}\n`python save_naver_cookies.py {blog_id}`"
+    _send(text)
+
+
+def notify_daily_summary(results: list, date: str = ""):
+    """하루 발행 요약 알림. results: [{blog_id, title?, url?, error?}, ...]"""
+    if not WEBHOOK_URL:
+        return
+    from collections import Counter
+
     success = [r for r in results if "error" not in r]
     fail = [r for r in results if "error" in r]
-
-    # 블로그별 집계
-    from collections import Counter
     blog_counts = Counter(r.get("blog_id", "") for r in success)
     summary_lines = [f"  {bid}: {cnt}개" for bid, cnt in sorted(blog_counts.items())]
 
@@ -56,17 +63,9 @@ def notify_daily_summary(results: list, date: str = ""):
     if summary_lines:
         text += "\n".join(summary_lines)
     if fail:
-        text += f"\n\n:warning: 실패 목록:"
+        text += "\n\n:warning: 실패 목록:"
         for r in fail[:5]:
             text += f"\n  - {r.get('blog_id','')}: {r.get('error','')[:50]}"
-    _send(text)
-
-
-def notify_login_expired(blog_id: str):
-    """쿠키 만료 알림."""
-    if not WEBHOOK_URL:
-        return
-    text = f":rotating_light: *로그인 만료* — {blog_id}\n`python save_naver_cookies.py {blog_id}`"
     _send(text)
 
 
