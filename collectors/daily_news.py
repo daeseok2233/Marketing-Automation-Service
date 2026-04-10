@@ -34,6 +34,9 @@ def _parse_pub_date(pub_date_str: str) -> str:
         return ""
 
 
+MAX_PER_KEYWORD = 15  # 키워드당 최대 저장 건수
+
+
 def collect_news(keywords=None, count_per_keyword=20, yesterday_only=True) -> list[dict]:
     """키워드별 네이버 뉴스 검색.
 
@@ -74,7 +77,10 @@ def collect_news(keywords=None, count_per_keyword=20, yesterday_only=True) -> li
             if r.status_code == 200:
                 items = r.json().get("items", [])
                 fetched = len(items)
+                kw_count = 0
                 for item in items:
+                    if kw_count >= MAX_PER_KEYWORD:
+                        break
                     title = item["title"].replace("<b>", "").replace("</b>", "")
                     pub_date = _parse_pub_date(item.get("pubDate", ""))
 
@@ -93,6 +99,7 @@ def collect_news(keywords=None, count_per_keyword=20, yesterday_only=True) -> li
                             "source": "naver",
                         })
                         filtered += 1
+                        kw_count += 1
                 date_info = f"(어제: {filtered}건)" if yesterday_only else ""
                 print(f"  [뉴스수집] '{keyword}' → {fetched}건 수집, {filtered}건 저장 {date_info}")
             else:
@@ -119,7 +126,10 @@ def collect_news(keywords=None, count_per_keyword=20, yesterday_only=True) -> li
                 root = ET.fromstring(r.content)
                 items = root.findall(".//item")
                 fetched = len(items)
+                kw_count = sum(1 for n in all_news if n.get("keyword") == keyword)
                 for item in items:
+                    if kw_count >= MAX_PER_KEYWORD:
+                        break
                     title = item.findtext("title", "").strip()
                     pub_date_raw = item.findtext("pubDate", "").strip()
                     pub_date = _parse_pub_date(pub_date_raw)
@@ -130,6 +140,7 @@ def collect_news(keywords=None, count_per_keyword=20, yesterday_only=True) -> li
 
                     if title and title not in seen:
                         seen.add(title)
+                        kw_count += 1
                         all_news.append({
                             "keyword": keyword,
                             "title": title,

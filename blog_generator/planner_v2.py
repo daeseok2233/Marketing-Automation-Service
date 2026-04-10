@@ -119,6 +119,7 @@ def plan_blog_topics(blog_id: str, count: int = 30) -> list[dict]:
         indices = select_articles_for_template(template_name, filtered_news, events)
         print(f"  [기획] {template_name} → {len(indices)}개 기사 선별")
 
+
         for idx in indices:
             article = filtered_news[idx]
             all_plans.append({

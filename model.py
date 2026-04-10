@@ -39,7 +39,6 @@ def _call_gemini(prompt: str, system: str = "", model: str = "", api_key: str = 
         "contents": contents,
         "generationConfig": {
             "temperature": 0.7,
-            "maxOutputTokens": max_tokens,
         },
     }
 

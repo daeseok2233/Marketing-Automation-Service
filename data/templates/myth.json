@@ -21,34 +21,94 @@
     "max": 2500
   },
   "structure": [
-    {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "상표 등록, 이렇게 알고 있으면 큰일 납니다"},
-    {"type": "text", "content": "잘못된 상식이 많다는 도입 (3~4줄)"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "오해 1: 사업자등록하면 상표권이 생긴다?"},
-    {"type": "text", "content": "틀립니다 + 올바른 설명 (4~5줄)"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "오해 2: 간판 이름이 곧 상표다?"},
-    {"type": "text", "content": "틀립니다 + 올바른 설명 (4~5줄)"},
-    {"type": "blank"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택 — 정확한 정보 제공 느낌의 이미지"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "오해 3: 상표 출원은 대기업만 하는 거다?"},
-    {"type": "text", "content": "틀립니다 + 올바른 설명 (4~5줄)"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "오해 4: 셀프 출원이 항상 저렴하다?"},
-    {"type": "text", "content": "틀립니다 + 거절 시 비용/시간 낭비 설명 (4~5줄)"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "올바른 상표 보호 방법"},
-    {"type": "text", "content": "마크뷰 검색 + 마크픽 출원 (3~4줄)"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
-    {"type": "blank"},
-    {"type": "text", "content": "CTA: '마크뷰 블로그 보고 왔습니다' 1만원 할인"},
-    {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
-    {"type": "blank"},
-    {"type": "hashtags", "content": "10개 (오해, 상식 중심 키워드)"}
+    {
+      "type": "image",
+      "content": "썸네일 (자동생성)",
+      "fixed": true
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "도입"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "heading",
+      "size": 19,
+      "slot": "소제목1"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "본문1"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "heading",
+      "size": 19,
+      "slot": "소제목2"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "본문2"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "QA"
+    },
+    {
+      "type": "image",
+      "content": "서비스소개 이미지 중 1개 선택"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "heading",
+      "size": 19,
+      "slot": "소제목3"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "본문3"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "image",
+      "content": "할인쿠폰 (image_mark_pick_coupon.png)",
+      "fixed": true
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "image",
+      "content": "카카오상담 (image_mark_pick_kakao.png)",
+      "fixed": true
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "hashtags",
+      "slot": "해시태그"
+    }
   ],
-  "is_local": false
+  "is_local": false,
+  "prompt_template": "제목: {30자 이내, 기사의 핵심 키워드 포함}\n\n{도입: 기사 내용 요약 + 왜 이게 중요한지 / 150자}\n\n소제목: {기사 핵심 이슈}\n{본문: 기사 팩트를 활용한 상세 설명 / 300자}\n\n소제목: {사장님/사업자에게 미치는 영향}\n{본문: 이 이슈가 사업자에게 왜 중요한지 + 상표 보호 필요성 / 200자}\n\n{Q&A: 독자가 궁금해할 질문 1~2개 + 답변 / 200자}\n\n소제목: {이렇게 해결하세요}\n{본문: 서비스를 이용한 출원 안내 / 200자}\n\n{해시태그 10개}"
 }

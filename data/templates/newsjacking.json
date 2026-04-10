@@ -20,22 +20,94 @@
     "max": 2500
   },
   "structure": [
-    {"type": "image", "content": "썸네일 (자동생성)", "fixed": true},
-    {"type": "blank"},
-    {"type": "heading", "size": 24, "content": "이 이슈와 상표, 무슨 관계?"},
-    {"type": "quote", "style": 1, "content": "트렌딩 이슈를 한 줄로 요약 / 30자"},
-    {"type": "text", "content": "지금 화제인 이슈를 소개하고, 이 이슈가 상표/브랜드 보호와 어떻게 연결되는지 설명 / 300자"},
-    {"type": "blank"},
-    {"type": "divider"},
-    {"type": "blank"},
-    {"type": "heading", "size": 19, "content": "우리 브랜드도 예외가 아닙니다"},
-    {"type": "text", "content": "비슷한 상황에서 상표 출원이 필요한 이유 + 마크뷰 검색 + 마크픽 출원 대행(10만원) 안내 / 300자"},
-    {"type": "image", "content": "서비스소개 이미지 중 1개 선택"},
-    {"type": "blank"},
-    {"type": "text", "content": "'마크뷰 블로그 보고 왔습니다' 하면 1만원 할인 안내 / 50자"},
-    {"type": "image", "content": "할인쿠폰 (image_mark_pick_coupon.png)", "fixed": true},
-    {"type": "blank"},
-    {"type": "hashtags", "content": "트렌딩 키워드 + 상표 키워드 포함 10개"}
+    {
+      "type": "image",
+      "content": "썸네일 (자동생성)",
+      "fixed": true
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "도입"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "heading",
+      "size": 19,
+      "slot": "소제목1"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "본문1"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "heading",
+      "size": 19,
+      "slot": "소제목2"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "본문2"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "QA"
+    },
+    {
+      "type": "image",
+      "content": "서비스소개 이미지 중 1개 선택"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "heading",
+      "size": 19,
+      "slot": "소제목3"
+    },
+    {
+      "type": "text",
+      "size": 15,
+      "slot": "본문3"
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "image",
+      "content": "할인쿠폰 (image_mark_pick_coupon.png)",
+      "fixed": true
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "image",
+      "content": "카카오상담 (image_mark_pick_kakao.png)",
+      "fixed": true
+    },
+    {
+      "type": "blank"
+    },
+    {
+      "type": "hashtags",
+      "slot": "해시태그"
+    }
   ],
-  "is_local": false
+  "is_local": false,
+  "prompt_template": "제목: {30자 이내, 기사의 핵심 키워드 포함}\n\n{도입: 기사 내용 요약 + 왜 이게 중요한지 / 150자}\n\n소제목: {기사 핵심 이슈}\n{본문: 기사 팩트를 활용한 상세 설명 / 300자}\n\n소제목: {사장님/사업자에게 미치는 영향}\n{본문: 이 이슈가 사업자에게 왜 중요한지 + 상표 보호 필요성 / 200자}\n\n{Q&A: 독자가 궁금해할 질문 1~2개 + 답변 / 200자}\n\n소제목: {이렇게 해결하세요}\n{본문: 서비스를 이용한 출원 안내 / 200자}\n\n{해시태그 10개}"
 }

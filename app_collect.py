@@ -14,6 +14,11 @@ load_dotenv()
 st.set_page_config(page_title="정보 수집 테스트", layout="wide")
 st.title("정보 수집 테스트 대시보드")
 
+if "plan_result" not in st.session_state:
+    st.session_state["plan_result"] = None
+if "plan_results" not in st.session_state:
+    st.session_state["plan_results"] = None
+
 NAVER_ID = os.environ.get("NAVER_CLIENT_ID", "")
 NAVER_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "")
 NAVER_HEADERS = {"X-Naver-Client-Id": NAVER_ID, "X-Naver-Client-Secret": NAVER_SECRET}
@@ -227,66 +232,450 @@ st.divider()
 # 글 기획
 # ============================================================
 st.header("글 기획")
-st.caption("수집된 데이터를 기반으로 LLM이 주제 선정 + 코드가 레퍼런스 확보")
+st.caption("수집된 뉴스에서 템플릿별로 활용할만한 기사를 LLM이 선별")
 
-col_plan1, col_plan2 = st.columns(2)
-with col_plan1:
-    plan_blog = st.selectbox("블로그 선택", ["blog_02", "blog_03", "blog_04", "blog_05", "blog_06", "blog_07"], key="plan_blog")
-with col_plan2:
-    plan_count = st.slider("기획할 글 수", 1, 30, 5, key="plan_count")
+# 블로그별 키워드 매핑
+BLOG_KEYWORDS = {
+    "blog_02": ["상표", "특허", "창업", "브랜드", "신제품"],
+    "blog_03": ["상표", "지식재산", "프랜차이즈", "상호명", "특허"],
+    "blog_04": ["축제", "박람회", "창업", "상권", "소상공인", "폐업", "자영업", "공모전", "페스티벌"],
+    "blog_05": ["축제", "박람회", "창업", "상권", "소상공인", "폐업", "자영업", "공모전", "페스티벌"],
+    "blog_06": ["축제", "박람회", "창업", "상권", "소상공인", "폐업", "자영업", "공모전", "페스티벌"],
+    "blog_07": ["축제", "박람회", "창업", "상권", "소상공인", "폐업", "자영업", "공모전", "페스티벌"],
+}
 
-# 오늘 기획 파일 확인
-plan_file = Path(f"data/generated/{today_str}_{plan_blog}_plan.json")
-if plan_file.exists():
-    saved_plans = json.loads(plan_file.read_text(encoding="utf-8"))
-    st.info(f"오늘 기획된 데이터: {len(saved_plans)}개 ({plan_file.name})")
+plan_blog = st.selectbox("블로그 선택", ["blog_02", "blog_03", "blog_04", "blog_05", "blog_06", "blog_07"], key="plan_blog")
+plan_keywords = BLOG_KEYWORDS.get(plan_blog, [])
+st.markdown(f"**참고 키워드**: {', '.join(plan_keywords)}")
 
-if st.button("글 기획 실행", type="primary", key="run_plan"):
-    import subprocess
-    with st.spinner(f"{plan_blog} — {plan_count}개 기획 중... (주제 선정 + 레퍼런스 수집)"):
-        result = subprocess.run(
-            ["python", "-X", "utf8", "-c",
-             f"from blog_generator.planner_v2 import plan_blog_topics; plan_blog_topics('{plan_blog}', {plan_count})"],
-            capture_output=True, text=True, timeout=180, encoding="utf-8",
-        )
-        if plan_file.exists():
-            saved_plans = json.loads(plan_file.read_text(encoding="utf-8"))
-            st.success(f"기획 완료: {len(saved_plans)}개")
-        else:
-            st.error(f"기획 실패: {result.stderr[:200]}")
+# 뉴스 필터링 + 프롬프트 미리보기
+if news_file.exists():
+    all_news = json.loads(news_file.read_text(encoding="utf-8"))
+    filtered_news = [n for n in all_news if n.get("keyword", "") in plan_keywords]
+    st.markdown(f"**필터된 뉴스**: {len(filtered_news)}건 (전체 {len(all_news)}건 중)")
 
-# 기획 결과 표시
-if plan_file.exists():
-    plans = json.loads(plan_file.read_text(encoding="utf-8"))
+    # 키워드별 뉴스 정리
+    news_by_keyword = {}
+    for n in filtered_news:
+        kw = n["keyword"]
+        if kw not in news_by_keyword:
+            news_by_keyword[kw] = []
+        news_by_keyword[kw].append(n["title"])
 
-    # 템플릿별 카운트
-    tpl_counts = Counter(p.get("template", "") for p in plans)
-    if tpl_counts:
-        cols = st.columns(len(tpl_counts))
-        for col, (tpl, cnt) in zip(cols, tpl_counts.items()):
-            col.metric(tpl, f"{cnt}개")
-    else:
-        st.warning("기획된 글이 없습니다")
+    news_text = ""
+    for kw, titles in news_by_keyword.items():
+        news_text += f"\n[{kw}]\n"
+        for i, t in enumerate(titles):
+            news_text += f"  {i+1}. {t}\n"
 
-    st.divider()
+    tpl_desc = """- local_event: 지역 행사/축제/박람회/공모전 등 소식.
+  행사 정보를 소개하고 자연스럽게 상표등록 필요성을 연결.
+  예: "송파 벚꽃축제 개막", "대전 창업 박람회 개최"
 
-    for i, p in enumerate(plans):
-        template = p.get("template", "")
-        title = p.get("article_title", "")
-        desc = p.get("article_desc", "")
-        link = p.get("article_link", "")
-        keyword = p.get("article_keyword", "")
-        source = p.get("article_source", "naver")
-        source_label = "N" if source == "naver" else "G"
+- issue: 상권/사업자 관련 뉴스나 사건.
+  이슈를 소개하고 상표/브랜드 보호 필요성을 연결.
+  예: "프랜차이즈 상표 분쟁", "자영업 폐업률 증가", "위조상품 단속"
 
-        with st.expander(f"{i+1}. [{template}] [{source_label}] {title[:60]}"):
-            st.markdown(f"**기사 제목**: {title}")
-            if desc:
-                st.markdown(f"**기사 설명**: {desc[:150]}")
-            st.markdown(f"**키워드**: {keyword}")
-            st.markdown(f"**출처**: {'네이버' if source == 'naver' else '구글'}")
-            if link:
-                st.markdown(f"[기사 링크]({link})")
+- local_issue: 지역 상권/사업자 관련 뉴스나 사건.
+  반드시 특정 지역이 포함된 기사만 선택할 것
+  (지역 = 시/군/구/동/읍/면 단위. 예: 서울, 강남구, 부산 해운대, 대전 유성구)
+  이슈를 소개하고 상표/브랜드 보호 필요성을 연결.
+  예: " A지역 프랜차이즈 상표 분쟁", "B 지역 자영업 폐업률 증가", "C 지역 위조상품 단속"
+
+- local_trend: 지역 창업/상권 트렌드.
+  반드시 특정 지역이 포함된 기사만 선택할 것
+  트렌드를 소개하고 경쟁 속 브랜드 차별화를 위한 상표등록을 연결.  
+  예: "강릉 카페 창업 증가", "서울시 소상공인 지원사업 확대\""""
+
+    # 프롬프트 템플릿 (기사 1건용)
+    prompt_template = f"""당신은 전문 마크뷰/마크패스/마크픽 서비스 블로그 콘텐츠 기획자이다.
+
+서비스 내용:
+- 마크뷰: AI 상표 검색 (유사발음·이미지 검색)
+- 마크패스: 상표 출원 자동화 (출원서/의견서/보정서 자동작성, AI 지정상품 추천)
+- 마크픽: 상표 출원 대행 (셀프 출원 지원/브랜드 네이밍/상표등록 침해 가능성/위조상품 무단도용 상표 모니터링)
+
+아래는 "{{keyword}}" 키워드로 검색한 뉴스 기사 제목과 내용이다.
+
+제목: {{title}}
+내용: {{description}}
+
+---
+
+이 기사가 마크뷰/마크패스/마크픽 서비스 블로그 포스팅에 사용가능한 래퍼런스인지 판단해라.
+
+## 판단 기준
+- 이 기사 내용과 상표/브랜드 보호를 자연스럽게 연결할 수 있는가?
+- 아래 템플릿에 적절히 잘 활용한 정보를 담고 있는가?
+- 활용 가능성을 100점 만점으로 평가
+- 90점 이상인 템플릿만 선택
+
+## 매칭할 템플릿
+{tpl_desc}
+
+## 출력 형식
+점수: (0~100)
+템플릿: (템플릿명 / 해당없음)
+기획: (어떤 흐름으로 글을 쓰면 좋을지 200자 이내)"""
+
+    # 프롬프트 편집
+    with st.expander("프롬프트 템플릿 편집"):
+        prompt_template = st.text_area("기사 1건당 LLM에게 보내는 프롬프트", prompt_template, height=400, key="plan_prompt")
+
+    # 기사 목록 표시
+    st.markdown(f"**평가할 기사**: {len(filtered_news)}건")
+    eval_count = st.slider("평가할 기사 수 (테스트용)", 1, min(len(filtered_news), 50), 5, key="eval_count")
+
+    # 기획 실행
+    if st.button("글 기획 실행 (기사별 개별 판단)", type="primary", key="run_plan"):
+        from model import generate as llm_generate
+        results = []
+        target_news = filtered_news[:eval_count]
+        progress = st.progress(0)
+        status = st.empty()
+
+        for i, article in enumerate(target_news):
+            status.text(f"[{i+1}/{len(target_news)}] {article['title'][:40]}...")
+            progress.progress((i + 1) / len(target_news))
+
+            prompt = prompt_template
+            prompt = prompt.replace("{{keyword}}", article.get("keyword", ""))
+            prompt = prompt.replace("{keyword}", article.get("keyword", ""))
+            prompt = prompt.replace("{{title}}", article.get("title", ""))
+            prompt = prompt.replace("{title}", article.get("title", ""))
+            prompt = prompt.replace("{{description}}", article.get("description", "(내용 없음)"))
+            prompt = prompt.replace("{description}", article.get("description", "(내용 없음)"))
+
+            result = llm_generate(prompt)
+            if result.get("text"):
+                results.append({
+                    "article": article,
+                    "response": result["text"],
+                })
+
+        st.session_state["plan_results"] = results
+        st.success(f"기획 완료: {len(results)}건 평가")
+
+    # 결과 표시
+    if st.session_state.get("plan_results"):
+        st.subheader("기획 결과")
+        for i, r in enumerate(st.session_state["plan_results"]):
+            article = r["article"]
+            response = r["response"]
+
+            # 점수 추출
+            score_line = [l for l in response.split("\n") if "점수:" in l]
+            score = score_line[0].split(":")[-1].strip() if score_line else "?"
+
+            with st.expander(f"{i+1}. [{article['keyword']}] [점수:{score}] {article['title'][:50]}"):
+                st.markdown(f"**기사 제목**: {article['title']}")
+                if article.get("description"):
+                    st.markdown(f"**기사 내용**: {article['description'][:150]}")
+                st.divider()
+                st.markdown("**LLM 판단:**")
+                st.markdown(response)
+
+else:
+    st.warning("뉴스 데이터가 없습니다. 먼저 일일 수집을 실행하세요.")
+
+st.divider()
+
+# ============================================================
+# 글 생성
+# ============================================================
+st.header("글 생성")
+st.caption("기획 결과에서 선택한 기사 + 템플릿으로 블로그 글 생성")
+
+if "gen_result" not in st.session_state:
+    st.session_state["gen_result"] = None
+
+if st.session_state.get("plan_results"):
+    # 기획 결과에서 글 생성할 기사 선택
+    plan_results = st.session_state["plan_results"]
+    article_options = []
+    for i, r in enumerate(plan_results):
+        score_line = [l for l in r["response"].split("\n") if "점수:" in l]
+        score = score_line[0].split(":")[-1].strip() if score_line else "?"
+        tpl_line = [l for l in r["response"].split("\n") if "템플릿:" in l]
+        tpl = tpl_line[0].split(":")[-1].strip() if tpl_line else "?"
+        article_options.append(f"{i+1}. [점수:{score}] [{tpl}] {r['article']['title'][:40]}")
+
+    selected_idx = st.selectbox("글 생성할 기사 선택", range(len(article_options)),
+                                 format_func=lambda x: article_options[x], key="gen_select")
+
+    selected = plan_results[selected_idx]
+    article = selected["article"]
+    plan_response = selected["response"]
+
+    # 템플릿 선택
+    tpl_line = [l for l in plan_response.split("\n") if "템플릿:" in l]
+    detected_tpl = tpl_line[0].split(":")[-1].strip() if tpl_line else "local_issue"
+    # local_ 로 시작하는 것만
+    if not detected_tpl.startswith("local_"):
+        detected_tpl = "local_issue"
+
+    gen_template = st.selectbox("템플릿", ["local_event", "local_issue", "local_trend"],
+                                 index=["local_event", "local_issue", "local_trend"].index(detected_tpl)
+                                 if detected_tpl in ["local_event", "local_issue", "local_trend"] else 1,
+                                 key="gen_tpl")
+
+    # 템플릿에서 prompt_template 로드
+    tpl_path = Path(f"data/templates/{gen_template}.json")
+    tpl_data = json.loads(tpl_path.read_text(encoding="utf-8")) if tpl_path.exists() else {}
+    prompt_tpl = tpl_data.get("prompt_template", "")
+
+    # 이유 추출
+    reason_line = [l for l in plan_response.split("\n") if "이유:" in l]
+    reason = reason_line[0].split(":")[-1].strip() if reason_line else ""
+
+    # 블로그 정보 로드
+    blogs_json_gen = json.loads(Path("data/service_data/blogs.json").read_text(encoding="utf-8"))
+    blog_info_gen = blogs_json_gen["blogs"].get(plan_blog, {})
+    blog_name = blog_info_gen.get("name", plan_blog)
+    blog_theme = blog_info_gen.get("theme", "")
+
+    # 글 생성 프롬프트
+    gen_prompt = f"""당신은 전문 마크뷰/마크픽/마크패스 서비스 블로그 글쓴이다.
+
+## 블로그 정보
+{blog_theme}
+
+서비스 정보:
+- 마크뷰: AI 상표 검색 (유사발음·이미지 검색)
+- 마크패스: 상표 출원 자동화 (출원서/의견서/보정서 자동작성, AI 지정상품 추천)
+- 마크픽: 상표 출원 대행 (셀프 출원 지원/브랜드 네이밍/상표등록 침해 가능성/위조상품 무단도용 상표 모니터링)
+
+## 레퍼런스 (이 기사를 활용해서 글을 작성)
+제목: {article['title']}
+내용: {article.get('description', '(내용 없음)')}
+활용 방향: {reason}
+
+## 규칙
+- 기사의 팩트(수치, 지역, 이벤트명 등을)를 활용할 것
+- 자연스럽게 상표/브랜드 보호 → 마크뷰/마크패스/마크픽 서비스로 연결
+- 허구 사례/통계 금지
+- 친근하고 실용적인 톤
+- title에 핵심 키워드 포함
+- intro 초반에 핵심 정의 포함
+- body에 Q&A 형식 1개 이상 포함
+- 이모지 적절히 활용 (✔ 📊 🛡 📌 등)
+- 짧은 문장, 줄바꿈 자주 사용 (한 문장에 하나의 정보만)
+- 마크다운(**, ##, *, - 등) 절대 사용 금지. 텍스트만 작성
+
+
+## 템플릿
+제목: {{30자 이내, 기사의 핵심 키워드 포함}}
+
+{prompt_tpl}"""
+
+    with st.expander("글 생성 프롬프트 편집"):
+        gen_prompt = st.text_area("프롬프트", gen_prompt, height=500, key="gen_prompt_edit")
+
+    if st.button("글 생성", type="primary", key="run_gen"):
+        with st.spinner("블로그 글 생성 중..."):
+            from model import generate as llm_generate
+            result = llm_generate(gen_prompt)
+            if result.get("text"):
+                st.session_state["gen_result"] = result["text"]
+                st.success(f"글 생성 완료 (모델: {result['model']})")
+
+    if st.session_state.get("gen_result"):
+        st.subheader("생성된 글 (원문)")
+        st.text_area("LLM 출력", st.session_state["gen_result"], height=300)
+
+        # structure 기반 Playwright 미리보기
+        st.subheader("Playwright 발행 미리보기")
+        st.caption(f"템플릿: {gen_template} / structure 기반")
+
+        raw = st.session_state["gen_result"]
+        lines = raw.split("\n")
+
+        # LLM 출력 파싱 → slot 매칭
+        title = ""
+        slots = {}
+        current_slot = None
+        current_lines = []
+        slot_map = {
+            "도입": "도입", "소제목1": None, "본문1": None,
+            "소제목2": None, "본문2": None, "QA": None,
+            "소제목3": None, "본문3": None, "해시태그": None,
+        }
+        heading_idx = 0
+        text_idx = 0
+
+        title_found = False
+        for line in lines:
+            l = line.strip()
+
+            # 제목 파싱 ("제목:" 또는 "## 제목")
+            if not title_found and (l.startswith("제목:") or (l.startswith("##") and heading_idx == 0)):
+                if l.startswith("제목:"):
+                    title = l.split(":", 1)[1].strip()
+                else:
+                    title = l.lstrip("#").strip()
+                title_found = True
+                continue
+
+            # 해시태그 (#으로 시작하고 3개 이상)
+            if l.startswith("#") and l.count("#") >= 3 and not l.startswith("##"):
+                slots["해시태그"] = l
+                continue
+
+            # 소제목 파싱 ("## 텍스트" 또는 "소제목: 텍스트" 또는 "### 텍스트")
+            is_heading = False
+            heading_text = ""
+            if l.startswith("##"):
+                is_heading = True
+                heading_text = l.lstrip("#").strip()
+            elif l.startswith("소제목:") or l.startswith("소제목 :"):
+                is_heading = True
+                heading_text = l.split(":", 1)[1].strip()
+
+            if is_heading:
+                # 이전 슬롯 저장
+                if current_slot and current_lines:
+                    slots[current_slot] = "\n".join(current_lines)
+                heading_idx += 1
+                slots[f"소제목{heading_idx}"] = heading_text
+                current_slot = f"본문{heading_idx}"
+                current_lines = []
+                continue
+
+            # 본문 텍스트
+            if current_slot:
+                if l:
+                    current_lines.append(l)
+            elif title_found and l and heading_idx == 0:
+                # 도입부 (제목 이후 ~ 첫 소제목 전)
+                if "도입" not in slots:
+                    slots["도입"] = l
+                else:
+                    slots["도입"] += "\n" + l
+
+        # 마지막 슬롯 저장
+        if current_slot and current_lines:
+            slots[current_slot] = "\n".join(current_lines)
+
+        # QA 분리 (본문2에 Q&A가 포함되어있을 수 있음)
+        for key in list(slots.keys()):
+            val = slots[key]
+            if "Q:" in val or "Q." in val or "질문" in val:
+                parts = val.split("\n")
+                qa_start = -1
+                for idx, p in enumerate(parts):
+                    if "Q:" in p or "Q." in p or "질문" in p:
+                        qa_start = idx
+                        break
+                if qa_start > 0:
+                    slots[key] = "\n".join(parts[:qa_start])
+                    slots["QA"] = "\n".join(parts[qa_start:])
+
+        # structure 기반 미리보기 생성
+        structure = tpl_data.get("structure", [])
+        preview_html = '<div style="font-family: Malgun Gothic, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">'
+
+        if title:
+            preview_html += f'<h1 style="font-size: 1.8em; margin-bottom: 20px;">{title}</h1>'
+
+        for item in structure:
+            t = item.get("type", "")
+            slot = item.get("slot", "")
+            size = item.get("size", 15)
+            content = item.get("content", "")
+
+            if t == "blank":
+                preview_html += "<br>"
+            elif t == "image":
+                if "썸네일" in content:
+                    preview_html += '<div style="background: #f0f0f0; padding: 20px; text-align: center; margin: 10px 0; border-radius: 8px;">[썸네일 이미지]</div>'
+                elif "쿠폰" in content:
+                    preview_html += '<div style="background: #e3f2fd; padding: 15px; text-align: center; margin: 10px 0; border-radius: 8px;">[쿠폰 이미지]</div>'
+                else:
+                    preview_html += '<div style="background: #f5f5f5; padding: 15px; text-align: center; margin: 10px 0; border-radius: 8px;">[서비스 이미지]</div>'
+            elif t == "heading":
+                text = slots.get(slot, f"[{slot}]")
+                font_size = {24: "1.6em", 19: "1.3em", 17: "1.1em"}.get(size, "1.2em")
+                preview_html += f'<h2 style="font-size: {font_size}; font-weight: bold; margin: 20px 0 10px 0;">{text}</h2>'
+            elif t == "text":
+                text = slots.get(slot, f"[{slot}]")
+                text_html = text.replace("\n", "<br>")
+                preview_html += f'<p style="font-size: {size}px; line-height: 1.8; margin: 5px 0;">{text_html}</p>'
+            elif t == "quote":
+                text = slots.get(slot, f"[{slot}]")
+                preview_html += f'<blockquote style="border-left: 3px solid #ccc; padding: 10px 15px; margin: 10px 0; color: #555;">{text}</blockquote>'
+            elif t == "hashtags":
+                text = slots.get(slot, "")
+                preview_html += f'<p style="color: #0068c3; margin-top: 20px;">{text}</p>'
+
+        preview_html += "</div>"
+        st.html(preview_html)
+
+        # Playwright 명령 리스트
+        with st.expander("Playwright 명령 상세"):
+            for item in structure:
+                t = item.get("type", "")
+                slot = item.get("slot", "")
+                size = item.get("size", "")
+                content = item.get("content", "")
+                text = slots.get(slot, "") if slot else ""
+
+                if t == "blank":
+                    st.markdown("- [빈줄]")
+                elif t == "image":
+                    st.markdown(f"- [이미지] {content}")
+                elif t == "heading":
+                    st.markdown(f"- [H{size}] {text[:40]}")
+                elif t == "text":
+                    st.markdown(f"- [텍스트 {size}pt] {text[:50]}...")
+                elif t == "hashtags":
+                    st.markdown(f"- [해시태그] {text[:50]}")
+
+        # 발행
+        st.divider()
+        st.subheader("네이버 블로그 발행")
+
+        blogs_json_pub = json.loads(Path("data/service_data/blogs.json").read_text(encoding="utf-8"))
+        blog_info_pub = blogs_json_pub["blogs"].get(plan_blog, {})
+        blog_url = blog_info_pub.get("blog_url", "")
+
+        st.warning(f"발행 대상: **{plan_blog}** (blog.naver.com/{blog_url})")
+
+        if st.button("네이버 블로그에 발행", type="primary", key="publish_gen"):
+            import subprocess, tempfile
+
+            # structure 기반 Playwright 명령 생성 데이터
+            publish_data = {
+                "title": title,
+                "slots": slots,
+                "structure": structure,
+                "blog_id": blog_url,
+                "cookie_blog_id": plan_blog,
+                "gen_template": gen_template,
+            }
+
+            tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8")
+            json.dump(publish_data, tmp, ensure_ascii=False)
+            tmp.close()
+
+            with st.spinner("네이버 블로그에 발행 중..."):
+                result = subprocess.run(
+                    ["python", "-X", "utf8", "publish_v2.py", tmp.name],
+                    capture_output=True, text=True, timeout=180, encoding="utf-8",
+                )
+                Path(tmp.name).unlink(missing_ok=True)
+
+                if result.returncode == 0 and result.stdout.strip():
+                    url = result.stdout.strip().split("\n")[-1]
+                    if url.startswith("http"):
+                        st.success(f"발행 완료! {url}")
+                        st.balloons()
+                    else:
+                        st.error(f"발행 실패 — {url}")
+                else:
+                    st.error(f"발행 실패 — {result.stderr[:200] if result.stderr else '알 수 없는 오류'}")
+
+else:
+    st.info("먼저 글 기획을 실행하세요.")
 
 st.divider()
 
