@@ -140,8 +140,12 @@ def evaluate_all_articles(max_evaluate: int = 200) -> list[dict]:
 
     prompt_tmpl = _build_default_prompt()
     results = []
+    target_news = all_news[:max_evaluate]
+    total = len(target_news)
 
-    for article in all_news[:max_evaluate]:
+    print(f"  [Plan] 평가 대상 {total}건")
+
+    for i, article in enumerate(target_news, 1):
         prompt = prompt_tmpl
         for k, v in [
             ("keyword", article.get("keyword", "")),
@@ -152,21 +156,31 @@ def evaluate_all_articles(max_evaluate: int = 200) -> list[dict]:
 
         result = llm_generate(prompt)
         text = result.get("text", "") if result else ""
+
+        title_short = article.get("title", "")[:35]
         if not text:
+            print(f"  [{i:3d}/{total}] {title_short}  → LLM 응답 없음")
             continue
 
         parsed = _parse_eval_response(text)
-        if parsed["score"] < 90 or not parsed["template"]:
-            continue
+        score = parsed["score"]
+        template = parsed["template"] or "?"
 
-        results.append({
-            "article": article,
-            "score": parsed["score"],
-            "template": parsed["template"],
-            "reason": parsed["reason"],
-            "response": text,
-        })
+        if score < 90 or not parsed["template"]:
+            mark = "✗"
+        else:
+            results.append({
+                "article": article,
+                "score": score,
+                "template": parsed["template"],
+                "reason": parsed["reason"],
+                "response": text,
+            })
+            mark = "✓"
 
+        print(f"  [{i:3d}/{total}] {title_short:<36} {mark} {score:>3}점 [{template}]  (통과 {len(results)}건)")
+
+    print(f"  [Plan] 평가 완료: {len(results)}/{total}건 통과 (90+ 점수)")
     return results
 
 

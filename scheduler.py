@@ -136,26 +136,49 @@ def run_plan_all():
     LLM 호출 1세트로 6개 블로그 큐를 모두 채운다 (per-blog 평가 대비 1/6 비용).
     같은 기사가 여러 블로그에 들어가도 generate_post() 단계에서 톤이 달라진다.
     """
+    from collections import Counter
     from blog_generator.plan import evaluate_all_articles, assign_to_blogs
 
     # 전체 목표 = 모든 블로그 합 × 2 (여유)
     total_target = sum(c["posts_per_day"] for c in BLOG_CONFIGS.values())
     max_eval = max(total_target * 3, 100)
 
+    print(f"\n{'=' * 60}")
     print(f"  [Plan] 전체 평가 시작 (목표 합 {total_target}개, 최대 평가 {max_eval}건)")
+    print(f"{'=' * 60}")
     scored = evaluate_all_articles(max_evaluate=max_eval)
-    print(f"  [Plan] 평가 통과: {len(scored)}건 (90점 이상)")
 
+    # 템플릿별 통과 분포
+    if scored:
+        tpl_counts = Counter(s["template"] for s in scored)
+        print(f"\n  [Plan] 템플릿별 통과 분포:")
+        for tpl, cnt in sorted(tpl_counts.items(), key=lambda x: -x[1]):
+            print(f"    {tpl:<18} {cnt}건")
+
+    # 블로그별 큐 배정
     queues = assign_to_blogs(scored, BLOG_CONFIGS)
 
     PLANS_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"\n  [Plan] 블로그별 큐 배정:")
+    print(f"  {'─' * 56}")
     for blog_id, queue in queues.items():
         _plan_file(blog_id).write_text(
             json.dumps(queue, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         target = BLOG_CONFIGS[blog_id]["posts_per_day"]
-        print(f"  [{blog_id}] 큐 {len(queue)}/{target} 저장")
+        bar_len = 20
+        filled = int(bar_len * len(queue) / target) if target else 0
+        bar = "█" * filled + "░" * (bar_len - filled)
+        warn = "" if len(queue) >= target else "  ⚠ 부족"
+        print(f"  {blog_id}  {bar}  {len(queue)}/{target}{warn}")
+
+        # 큐에 들어간 템플릿 분포
+        if queue:
+            q_tpls = Counter(item["template"] for item in queue)
+            tpl_str = ", ".join(f"{t}×{c}" for t, c in q_tpls.most_common())
+            print(f"           └ {tpl_str}")
+    print(f"  {'─' * 56}\n")
 
 
 def ensure_planned():
