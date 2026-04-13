@@ -1,8 +1,10 @@
+# 핵심 의존성
 requests>=2.31.0
 python-dotenv>=1.0.0
+streamlit>=1.30.0
+Pillow>=10.0.0
+playwright>=1.40.0
+
+# 데이터 수집 (collectors/)
 pytrends>=4.9.0
 beautifulsoup4>=4.12.0
-pandas>=2.0.0
-openpyxl>=3.1.0
-playwright>=1.40.0
-Pillow>=10.0.0

@@ -211,6 +211,7 @@ def make_thumbnail(
         _draw_centered_lines(draw, sub2_lines, f_sub, y_start=sub_y, line_gap=8, fill="white")
 
     # ── 로고 ──
+    # NOTE: logo_markpick.png는 미리 배경 투명 처리된 PNG여야 함
     if LOGO_PATH.exists():
         logo = Image.open(LOGO_PATH).convert("RGBA")
         logo_w = 180

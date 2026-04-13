@@ -42,17 +42,22 @@ PUBLISH_END_HOUR = 22   # 발행 종료
 
 # 블로그별 발행 설정
 BLOG_CONFIGS = {
-    "blog_02": {"posts_per_day": 10, "min_interval_min": 30, "max_interval_min": 45},
-    "blog_03": {"posts_per_day": 10, "min_interval_min": 30, "max_interval_min": 45},
-    "blog_04": {"posts_per_day": 10, "min_interval_min": 30, "max_interval_min": 45},
-    "blog_05": {"posts_per_day": 10, "min_interval_min": 30, "max_interval_min": 45},
-    "blog_06": {"posts_per_day": 10, "min_interval_min": 30, "max_interval_min": 45},
-    "blog_07": {"posts_per_day": 20, "min_interval_min": 20, "max_interval_min": 35},
+    "blog_02": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_03": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_04": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_05": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_06": {"posts_per_day": 30, "min_interval_min": 30, "max_interval_min": 45},
+    "blog_07": {"posts_per_day": 40, "min_interval_min": 20, "max_interval_min": 35},
 }
 
 STATE_PATH = Path("data/schedule_state.json")
 PLANS_DIR = Path("data/plans")
 LOG_DIR = Path("data/generated")
+
+# Live 모드 설정
+LIVE_INTERVAL_MIN = 15        # 슬롯 간격 최소 (분)
+LIVE_INTERVAL_MAX = 25        # 슬롯 간격 최대 (분)
+LIVE_MAX_TRIES_PER_SLOT = 50  # 한 슬롯에서 평가할 최대 기사 수
 
 
 # ════════════════════════════════════════════════════════════
@@ -72,6 +77,11 @@ def _news_file() -> Path:
 
 def _plan_file(blog_id: str) -> Path:
     return PLANS_DIR / f"{_today_str()}_{blog_id}.json"
+
+
+def _live_state_file() -> Path:
+    """Live 모드: 오늘 어디까지 평가했는지 인덱스 저장."""
+    return PLANS_DIR / f"{_today_str()}_live_state.json"
 
 
 # ── 발행 이력 관리 ──
@@ -292,6 +302,194 @@ def make_daily_schedule() -> list:
 
 
 # ════════════════════════════════════════════════════════════
+#  Live 모드 — 실시간 평가 + 다중 블로그 동시 발행
+# ════════════════════════════════════════════════════════════
+def _load_live_index() -> int:
+    """오늘 평가 인덱스 로드 (없으면 0)."""
+    p = _live_state_file()
+    if not p.exists():
+        return 0
+    try:
+        return json.loads(p.read_text(encoding="utf-8")).get("next_index", 0)
+    except Exception:
+        return 0
+
+
+def _save_live_index(idx: int):
+    """오늘 평가 인덱스 저장."""
+    p = _live_state_file()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({"next_index": idx}), encoding="utf-8")
+
+
+def _matching_blogs_with_room(template: str) -> list[str]:
+    """template을 가진 블로그 중 오늘 발행 한도가 남은 것만 반환."""
+    blogs_json = _load_blogs_json()
+    targets = []
+    for bid, config in BLOG_CONFIGS.items():
+        info = blogs_json["blogs"].get(bid, {})
+        if template not in info.get("templates", []):
+            continue
+        if _get_today_count(bid) >= config["posts_per_day"]:
+            continue
+        targets.append(bid)
+    return targets
+
+
+def publish_to_blogs(article: dict, template: str, reason: str, blog_ids: list[str]) -> list[dict]:
+    """매칭된 블로그들에 동시 발행. 각각 generate_post → publish_post."""
+    from blog_generator.generate import generate_post
+    from blog_generator.publish import publish_post
+
+    blogs_json = _load_blogs_json()
+    results = []
+
+    for bid in blog_ids:
+        info = blogs_json["blogs"].get(bid, {})
+        blog_url = info.get("blog_url", "")
+        if not blog_url:
+            print(f"  [{bid}] blog_url 없음 — 스킵")
+            continue
+
+        print(f"  [{bid}] 글 생성 중...")
+        post = generate_post(article=article, template=template, blog_id=bid, reason=reason)
+        if not post:
+            print(f"  [{bid}] ✗ 글 생성 실패")
+            results.append({"blog_id": bid, "error": "생성 실패"})
+            continue
+
+        print(f"  [{bid}] 네이버 발행 중...")
+        url = publish_post(post=post, blog_id=blog_url, cookie_blog_id=bid)
+        if not url:
+            print(f"  [{bid}] ✗ 발행 실패")
+            results.append({"blog_id": bid, "error": "발행 실패", "title": post.get("title", "")})
+            continue
+
+        _save_history(bid, post, url)
+        print(f"  [{bid}] ✓ 완료: {url}")
+        results.append({"blog_id": bid, "title": post.get("title", ""), "url": url, "template": template})
+
+    return results
+
+
+def run_live():
+    """Live 모드 — 슬롯마다 기사 1건씩 평가해 매칭 블로그에 동시 발행.
+
+    흐름:
+      1) 수집 확인 (없으면 즉시 수집)
+      2) 무한 루프:
+         a) 평가 인덱스에서 다음 기사 꺼냄
+         b) LLM 평가 → 통과 시 매칭 블로그 추출 → 동시 발행 → 1슬롯 종료
+         c) 미통과 또는 매칭 블로그 없음 → 다음 기사 (대기 없이 즉시)
+         d) 한 슬롯에서 LIVE_MAX_TRIES_PER_SLOT 초과 시 종료
+         e) 다음 슬롯까지 LIVE_INTERVAL_MIN~MAX 분 대기
+    """
+    print(f"\nLive 스케줄러 시작: {datetime.now():%Y-%m-%d %H:%M}")
+    print(f"  슬롯 간격: {LIVE_INTERVAL_MIN}~{LIVE_INTERVAL_MAX}분")
+    print(f"  슬롯당 최대 평가: {LIVE_MAX_TRIES_PER_SLOT}건\n")
+
+    from blog_generator.plan import evaluate_one_article
+
+    while True:
+        # 1) 수집 확인
+        ensure_collected()
+
+        # 오늘 뉴스 로드
+        news_path = _news_file()
+        if not news_path.exists():
+            print("  [Live] 뉴스 파일 없음 — 1시간 대기")
+            time.sleep(3600)
+            continue
+
+        all_news = json.loads(news_path.read_text(encoding="utf-8"))
+        idx = _load_live_index()
+
+        if idx >= len(all_news):
+            # 오늘 기사 다 봄 → 다음 날 00:00까지 대기
+            now = datetime.now()
+            tomorrow_0am = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            wait_sec = (tomorrow_0am - now).total_seconds()
+            hours = int(wait_sec // 3600)
+            mins = int((wait_sec % 3600) // 60)
+            print(f"\n  [Live] 오늘 기사 모두 평가 완료 ({len(all_news)}건)")
+            print(f"  [Live] 다음 날까지 대기: {hours}시간 {mins}분")
+            time.sleep(wait_sec)
+            continue
+
+        # 모든 블로그가 한도를 채웠는지 확인
+        all_full = all(
+            _get_today_count(bid) >= cfg["posts_per_day"]
+            for bid, cfg in BLOG_CONFIGS.items()
+        )
+        if all_full:
+            now = datetime.now()
+            tomorrow_0am = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            wait_sec = (tomorrow_0am - now).total_seconds()
+            hours = int(wait_sec // 3600)
+            print(f"\n  [Live] 모든 블로그 발행 한도 도달 — 다음 날까지 {hours}시간 대기")
+            time.sleep(wait_sec)
+            continue
+
+        # 2) 슬롯 시작 — 통과할 때까지 또는 max_tries 까지 평가
+        print(f"\n{'─' * 56}")
+        print(f"  [Live 슬롯] {datetime.now():%H:%M}  (평가 인덱스 {idx}/{len(all_news)})")
+        print(f"{'─' * 56}")
+
+        published_in_slot = False
+        for try_n in range(LIVE_MAX_TRIES_PER_SLOT):
+            if idx >= len(all_news):
+                print(f"  [Live] 기사 풀 끝 — 다음 사이클로")
+                break
+
+            article = all_news[idx]
+            idx += 1
+            _save_live_index(idx)
+
+            title_short = article.get("title", "")[:35]
+            print(f"  [{try_n+1:2d}] {title_short}", end="  ", flush=True)
+
+            scored = evaluate_one_article(article)
+            if not scored:
+                print("→ LLM 응답 없음")
+                continue
+
+            if scored.get("_failed"):
+                print(f"✗ {scored['score']:>3}점 [{scored['template'] or '?'}]")
+                continue
+
+            template = scored["template"]
+            score = scored["score"]
+            print(f"✓ {score:>3}점 [{template}]")
+
+            # 매칭 블로그 (한도 안 찬 것만)
+            targets = _matching_blogs_with_room(template)
+            if not targets:
+                print(f"       └ 매칭 블로그 없음 또는 한도 도달 — 다음 기사")
+                continue
+
+            print(f"       └ 발행 대상: {', '.join(targets)}")
+
+            # 동시 발행
+            results = publish_to_blogs(article, template, scored.get("reason", ""), targets)
+            success = [r for r in results if "url" in r]
+            if success:
+                published_in_slot = True
+                break  # 1슬롯 = 1성공 발행
+            else:
+                print(f"       └ 모든 블로그 발행 실패 — 다음 기사")
+
+        # 3) 다음 슬롯까지 대기
+        if published_in_slot:
+            wait_min = random.randint(LIVE_INTERVAL_MIN, LIVE_INTERVAL_MAX)
+            print(f"\n  [Live] {wait_min}분 대기 후 다음 슬롯")
+            time.sleep(wait_min * 60)
+        else:
+            # 슬롯 내에서 한 건도 발행 못 함 → 짧은 대기 후 재시도
+            print(f"\n  [Live] 슬롯 내 발행 없음 — 5분 후 재시도")
+            time.sleep(5 * 60)
+
+
+# ════════════════════════════════════════════════════════════
 #  메인 루프
 # ════════════════════════════════════════════════════════════
 def run_forever():
@@ -387,7 +585,19 @@ def run_forever():
 
 
 if __name__ == "__main__":
+    # CLI: python scheduler.py [queue|live]
+    #   queue (기본) — 새벽에 일괄 평가 → 큐 생성 → 시간표대로 발행
+    #   live          — 슬롯마다 1건씩 평가 → 통과 시 매칭 블로그 동시 발행
+    mode = sys.argv[1] if len(sys.argv) > 1 else "queue"
+
     try:
-        run_forever()
+        if mode == "live":
+            run_live()
+        elif mode == "queue":
+            run_forever()
+        else:
+            print(f"알 수 없는 모드: {mode}")
+            print("사용법: python scheduler.py [queue|live]")
+            sys.exit(1)
     except KeyboardInterrupt:
         print("\n스케줄러 종료")

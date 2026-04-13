@@ -80,10 +80,11 @@ def _build_default_prompt():
 이 기사가 마크뷰/마크패스/마크픽 서비스 블로그 포스팅에 사용가능한 래퍼런스인지 판단해라.
 
 ## 판단 기준
-- 이 기사 내용과 상표/브랜드 보호를 자연스럽게 연결할 수 있는가?
-- 아래 템플릿에 적절히 잘 활용한 정보를 담고 있는가?
+- 기사 내용과 서비스를 자연스럽게 연결할 수 있는가?
+- 아래 템플릿에 활용 가능한 정보를 담고 있는가?
 - 활용 가능성을 100점 만점으로 평가
-- 90점 이상인 템플릿만 선택
+- 냉정하게 평가
+- 95점 이상인 템플릿만 선택
 
 ## 매칭할 템플릿
 {TPL_DESC}
@@ -112,6 +113,47 @@ def _parse_eval_response(response: str) -> dict:
         elif "기획:" in line or "이유:" in line:
             reason = line.split(":", 1)[-1].strip()
     return {"score": score, "template": template, "reason": reason}
+
+
+def evaluate_one_article(article: dict) -> dict | None:
+    """기사 1건을 평가해 통과 시 결과 반환, 미통과 시 None.
+
+    Live 모드 스케줄러용. 전체 평가 없이 그때그때 1건씩 LLM 호출.
+
+    Returns:
+        통과: {"article": ..., "score": int, "template": str, "reason": str, "response": str}
+        미통과: None
+    """
+    from model import generate as llm_generate
+
+    prompt = _build_default_prompt()
+    for k, v in [
+        ("keyword", article.get("keyword", "")),
+        ("title", article.get("title", "")),
+        ("description", article.get("description", "(내용 없음)")),
+    ]:
+        prompt = prompt.replace("{{" + k + "}}", v).replace("{" + k + "}", v)
+
+    result = llm_generate(prompt)
+    text = result.get("text", "") if result else ""
+    if not text:
+        return None
+
+    parsed = _parse_eval_response(text)
+    if parsed["score"] < 90 or not parsed["template"]:
+        return {
+            "_failed": True,
+            "score": parsed["score"],
+            "template": parsed["template"],
+        }
+
+    return {
+        "article": article,
+        "score": parsed["score"],
+        "template": parsed["template"],
+        "reason": parsed["reason"],
+        "response": text,
+    }
 
 
 def evaluate_all_articles(max_evaluate: int = 200) -> list[dict]:
